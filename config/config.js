@@ -2,14 +2,16 @@ require('dotenv').config();
 
 module.exports = {
   development: {
-    dialect: 'sqlite',
-    storage: './database.sqlite',
-    logging: false // Disable logging for cleaner output
+    username: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || null,
+    database: process.env.DB_NAME_TEST || 'gd_app',
+    host: process.env.DB_HOST || '127.0.0.1',
+    dialect: 'mysql'
   },
   test: {
     username: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || null,
-    database: process.env.DB_NAME_TEST || 'database_test',
+    database: process.env.DB_NAME_TEST || 'gd_app',
     host: process.env.DB_HOST || '127.0.0.1',
     dialect: 'mysql'
   },
