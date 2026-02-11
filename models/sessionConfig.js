@@ -38,7 +38,25 @@ module.exports = (sequelize, DataTypes) => {
         supervisor_multipliers: DataTypes.JSON,
         credibility_weights: DataTypes.JSON,
         no_repeat_pairing_horizon: DataTypes.INTEGER,
-        created_by_admin_id: DataTypes.INTEGER
+        created_by_admin_id: DataTypes.INTEGER,
+        status: {
+            type: DataTypes.ENUM('WAITING', 'ACTIVE', 'COMPLETED', 'CANCELLED'),
+            defaultValue: 'WAITING'
+        },
+        activity_type: DataTypes.STRING(50),
+        advancement_pts: DataTypes.INTEGER,
+        cool_down_sec: DataTypes.INTEGER,
+        weight_technical: DataTypes.INTEGER,
+        weight_communication: DataTypes.INTEGER,
+        weight_synergy: DataTypes.INTEGER,
+        auto_rewards: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
+        },
+        intel_feedback: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
+        }
     }, {
         sequelize,
         modelName: 'SessionConfig',

@@ -40,4 +40,7 @@ app.use('/api/admin-analytics', adminAnalyticsRoutes);
 const adminActivityLogRoutes = require('./routes/adminActivityLog.routes');
 app.use('/api/admin-activity-logs', adminActivityLogRoutes);
 
+const activitySettingsRoutes = require('./routes/activitySettings.routes');
+app.use('/api/activity-settings', activitySettingsRoutes);
+
 module.exports = app;

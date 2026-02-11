@@ -4,6 +4,7 @@ const controller = require('../controllers/sessionConfig.controller');
 
 router.post('/', controller.create);
 router.get('/', controller.findAll);
+router.get('/active', controller.findActive);
 router.get('/:id', controller.findOne);
 router.put('/:id', controller.update);
 router.delete('/:id', controller.delete);

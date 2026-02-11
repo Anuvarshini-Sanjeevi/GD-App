@@ -47,7 +47,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       defaultValue: 0
     },
-    flags: DataTypes.JSON
+    flags: DataTypes.JSON,
+    phone: DataTypes.STRING(20),
+    location: DataTypes.STRING(255),
+    department: DataTypes.STRING(255),
+    last_login: DataTypes.DATE
   }, {
     sequelize,
     modelName: 'User',

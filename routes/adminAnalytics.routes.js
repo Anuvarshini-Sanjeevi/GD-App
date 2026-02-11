@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/adminAnalytics.controller');
 
+// New Ranking API
+router.get('/rankings', controller.getRankings);
+
+// Deprecated / Legacy Routes (will return 501)
 router.post('/', controller.create);
 router.get('/activity/:type', controller.findByActivityType);
 router.get('/', controller.findAll);
