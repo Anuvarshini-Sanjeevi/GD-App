@@ -1,4 +1,4 @@
-const { User } = require('../models');
+const { User, StudentRanking } = require('../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -40,10 +40,19 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.status(400).json({ message: 'Request body is missing or empty. Ensure Content-Type is application/json.' });
+        }
+
+        const { email, username, password } = req.body;
+        const loginIdentifier = email || username;
+
+        if (!loginIdentifier) {
+            return res.status(400).json({ message: 'Email or username is required.' });
+        }
 
         // Find user
-        const user = await User.findOne({ where: { email } });
+        const user = await User.findOne({ where: { email: loginIdentifier } });
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
@@ -88,7 +97,22 @@ exports.getProfile = async (req, res) => {
             return res.status(404).json({ message: 'User not found.' });
         }
 
-        res.json(user);
+        let profileData = user.toJSON();
+
+        // If user is a student, fetch their rank from StudentRankings
+        if (user.role === 'student') {
+            const ranking = await StudentRanking.findOne({
+                where: {
+                    student_id: user.user_id,
+                    activity_type: 'GROUP_DISCUSSION', // Default per UI
+                    level: 'OVERALL'
+                },
+                attributes: ['rank']
+            });
+            profileData.rank = ranking ? ranking.rank : null;
+        }
+
+        res.json(profileData);
     } catch (error) {
         console.error('Get Profile Error:', error);
         res.status(500).json({ message: 'Server error while fetching profile.' });

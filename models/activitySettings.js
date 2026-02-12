@@ -27,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
         intel_feedback: {
             type: DataTypes.BOOLEAN,
             defaultValue: true
+        },
+        category: DataTypes.STRING(100),
+        total_levels: {
+            type: DataTypes.INTEGER,
+            defaultValue: 10
         }
     }, {
         sequelize,

@@ -20,7 +20,16 @@ curl -X POST http://localhost:8080/auth/login \
 -d '{"email": "admin@example.com", "password": "password123"}'
 ```
 
-### Get My Profile (Logged-in User)
+### Get Logged-in User Profile
+**URL**: `/auth/me`
+**Method**: `GET`
+**Headers**: `Authorization: Bearer <token>`
+
+Returns details of the currently logged-in user. For students, this includes:
+- `roll_number`, `batch`
+- `experience_points`
+- `rank` (Fetched from rankings)
+
 ```bash
 curl -X GET http://localhost:8080/auth/me \
 -H "Authorization: Bearer <YOUR_TOKEN_HERE>"
@@ -134,7 +143,10 @@ curl -X POST http://localhost:8080/api/session-configs \
   "session_id": 101, 
   "activity_type": "GROUP_DISCUSSION",
   "created_by_admin_id": 1, 
-  "status": "ACTIVE"
+  "status": "ACTIVE",
+  "protocol": "Hybrid Protocol",
+  "start_time": "11:44 AM",
+  "complexity_level": "L1"
 }'
 ```
 
@@ -220,7 +232,50 @@ curl -X PUT http://localhost:8080/api/activity-settings/GROUP_DISCUSSION \
 -d '{
   "advancement_pts": 90,
   "time_limit_min": 50,
-  "weight_technical": 45,
   "auto_rewards": false
 }'
 ```
+
+---
+
+## Student Activities
+
+### Get Student Activity Progress
+Returns all activities with the logged-in student's progress and levels.
+
+**URL**: `/api/student/activities`
+**Method**: `GET`
+**Headers**: `Authorization: Bearer <token>`
+
+**Response Example**:
+```json
+[
+  {
+    "activity_type": "GROUP_DISCUSSION",
+    "name": "Group Discussion",
+    "category": "Collaboration",
+    "total_levels": 10,
+    "completed_levels": 3,
+    "progress_percent": 30,
+    "status": "PENDING"
+  }
+]
+```
+
+### Update Student Activity Progress
+Updates the number of completed levels for a specific activity for the logged-in student.
+
+**URL**: `/api/student/activities/update`
+**Method**: `POST`
+**Headers**:
+- `Authorization: Bearer <token>`
+- `Content-Type: application/json`
+
+**Body**:
+```json
+{
+  "activity_type": "GROUP_DISCUSSION",
+  "completed_levels": 5
+}
+```
+

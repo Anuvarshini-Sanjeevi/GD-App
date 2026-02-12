@@ -51,7 +51,16 @@ module.exports = (sequelize, DataTypes) => {
     phone: DataTypes.STRING(20),
     location: DataTypes.STRING(255),
     department: DataTypes.STRING(255),
-    last_login: DataTypes.DATE
+    last_login: DataTypes.DATE,
+    roll_number: {
+      type: DataTypes.STRING(50),
+      unique: true
+    },
+    batch: DataTypes.STRING(50),
+    experience_points: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    }
   }, {
     sequelize,
     modelName: 'User',

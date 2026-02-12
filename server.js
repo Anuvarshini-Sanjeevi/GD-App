@@ -10,9 +10,19 @@ async function startServer() {
         console.log('Database connection has been established successfully.');
 
         // Start server
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}.`);
         });
+
+        server.on('error', (error) => {
+            if (error.code === 'EADDRINUSE') {
+                console.error(`Port ${PORT} is already in use. Please close the other process or use a different port.`);
+            } else {
+                console.error('Server error:', error);
+            }
+            process.exit(1);
+        });
+
     } catch (error) {
         console.error('Unable to connect to the database:', error);
         process.exit(1);

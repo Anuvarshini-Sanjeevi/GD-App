@@ -21,6 +21,14 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             allowNull: false
         },
+        activity_type: {
+            type: DataTypes.STRING(50),
+            allowNull: true
+        },
+        start_time: {
+            type: DataTypes.STRING(50),
+            allowNull: true
+        },
         expires_in_minutes: DataTypes.INTEGER,
         scan_count: {
             type: DataTypes.INTEGER,

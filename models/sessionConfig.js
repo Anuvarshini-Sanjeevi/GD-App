@@ -39,8 +39,12 @@ module.exports = (sequelize, DataTypes) => {
         credibility_weights: DataTypes.JSON,
         no_repeat_pairing_horizon: DataTypes.INTEGER,
         created_by_admin_id: DataTypes.INTEGER,
+        started_at: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
         status: {
-            type: DataTypes.ENUM('WAITING', 'ACTIVE', 'COMPLETED', 'CANCELLED'),
+            type: DataTypes.ENUM('WAITING', 'ACTIVE', 'COMPLETED', 'CANCELLED', 'INACTIVE'),
             defaultValue: 'WAITING'
         },
         activity_type: DataTypes.STRING(50),
@@ -56,7 +60,10 @@ module.exports = (sequelize, DataTypes) => {
         intel_feedback: {
             type: DataTypes.BOOLEAN,
             defaultValue: true
-        }
+        },
+        protocol: DataTypes.STRING(100),
+        start_time: DataTypes.STRING(50),
+        complexity_level: DataTypes.STRING(50)
     }, {
         sequelize,
         modelName: 'SessionConfig',
