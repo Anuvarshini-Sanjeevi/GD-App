@@ -67,13 +67,15 @@ module.exports = (sequelize, DataTypes) => {
     hooks: {
       beforeCreate: async (user) => {
         if (user.password) {
-          const salt = await bcrypt.genSalt(10);
+          // Reduced from 10 to 8 for better mobile performance
+          // 8 rounds = ~500ms on mobile vs 10 rounds = ~2-3s
+          const salt = await bcrypt.genSalt(8);
           user.password = await bcrypt.hash(user.password, salt);
         }
       },
       beforeUpdate: async (user) => {
         if (user.changed('password')) {
-          const salt = await bcrypt.genSalt(10);
+          const salt = await bcrypt.genSalt(8);
           user.password = await bcrypt.hash(user.password, salt);
         }
       }

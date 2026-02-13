@@ -29,6 +29,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(50),
             allowNull: true
         },
+        join_window_minutes: {
+            type: DataTypes.INTEGER,
+            defaultValue: 5
+        },
         expires_in_minutes: DataTypes.INTEGER,
         scan_count: {
             type: DataTypes.INTEGER,

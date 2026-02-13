@@ -3,14 +3,15 @@ const HallQrToken = db.HallQrToken;
 
 exports.create = async (req, res) => {
     try {
-        const { hall_qr_token, session_id, expires_in_minutes, created_by_admin_id, activity_type, start_time } = req.body;
+        const { hall_qr_token, session_id, expires_in_minutes, created_by_admin_id, activity_type, start_time, join_window_minutes } = req.body;
         const token = await HallQrToken.create({
             hall_qr_token,
             session_id,
             expires_in_minutes,
             created_by_admin_id,
             activity_type,
-            start_time
+            start_time,
+            join_window_minutes: join_window_minutes || 5 // Default 5 minutes
         });
         res.status(201).send(token);
     } catch (error) {

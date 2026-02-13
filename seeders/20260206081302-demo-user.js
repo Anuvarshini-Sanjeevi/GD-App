@@ -5,7 +5,7 @@ module.exports = {
     // Clear existing user with same email if needed
     await queryInterface.bulkDelete('Users', { email: 'admin@example.com' }, {});
 
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(8);
     const hashedPassword = await bcrypt.hash('password123', salt);
 
     return queryInterface.bulkInsert('Users', [{

@@ -40,18 +40,48 @@ exports.create = async (req, res) => {
 
 const checkSessionExpiration = (session) => {
     try {
-        if (session.status === 'ACTIVE' && session.started_at && (session.activity_duration_minutes !== null && session.activity_duration_minutes !== undefined)) {
+        // Only process if we have necessary time fields
+        if (session.started_at && session.status !== 'CANCELLED') {
+            const now = new Date();
+            const currentTime = now.getTime();
             const startTime = new Date(session.started_at).getTime();
-            const currentTime = new Date().getTime();
-            const durationMinutes = parseFloat(session.activity_duration_minutes);
+
+            // Get duration and join window (default to 5 mins if not set)
+            const durationMinutes = parseFloat(session.activity_duration_minutes) || 0;
+            const joinWindowMinutes = parseFloat(session.join_window_minutes) || 5;
+
+            const joinWindowMs = joinWindowMinutes * 60 * 1000;
             const durationMs = durationMinutes * 60 * 1000;
 
-            const diff = currentTime - startTime;
+            const timeSinceStart = currentTime - startTime;
 
-            if (diff >= durationMs) {
-                // Return a copy with status set to INACTIVE
+            let newStatus = session.status;
+
+            // Logic:
+            // 0 <= time < joinWindow: ACTIVE (Join Window)
+            // joinWindow <= time < (joinWindow + duration): IN_PROGRESS
+            // time >= (joinWindow + duration): COMPLETED (if auto-complete/expire enabled)
+
+            if (timeSinceStart < 0) {
+                // Future start time
+                newStatus = 'WAITING';
+            } else if (timeSinceStart < joinWindowMs) {
+                // In Join Window
+                newStatus = 'ACTIVE';
+            } else if (timeSinceStart < (joinWindowMs + durationMs)) {
+                // Join window over, activity in progress
+                newStatus = 'IN_PROGRESS';
+            } else {
+                // Activity time over
+                newStatus = 'COMPLETED';
+            }
+
+            // Only update if status changed and it's a valid transition (e.g. don't go back from COMPLETED to ACTIVE)
+            if (newStatus !== session.status) {
+                // Update the session object (in memory for now, caller decides to save)
+                // For findAll/findOne we just return the calculated status for display
                 const sessionData = session.toJSON ? session.toJSON() : { ...session };
-                return { ...sessionData, status: 'INACTIVE' };
+                return { ...sessionData, status: newStatus };
             }
         }
     } catch (e) {
