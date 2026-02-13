@@ -16,7 +16,15 @@ class ApiService {
   // Use 10.0.2.2 for Android emulator to reach host's localhost
   // Use localhost for web/desktop
   static String get baseUrl {
-    return 'https://d29qdzpk-8080.inc1.devtunnels.ms';
+    // For web, always use localhost
+    if (kIsWeb) {
+      return 'http://localhost:8080';
+    }
+    
+    // For mobile (physical device or emulator), use the machine's LAN IP
+    // This allows physical devices to connect to the backend
+    // Make sure your backend server is listening on 0.0.0.0 (all interfaces)
+    return 'http://10.150.250.228:8080';
   }
 
   static Future<List<SessionConfig>> getActiveSessionConfigs() async {
@@ -78,10 +86,10 @@ class ApiService {
 
   static Future<Map<String, dynamic>> login(String username, String password) async {
     try {
-      debugPrint('API Request: POST $baseUrl/api/auth/login');
+      debugPrint('API Request: POST $baseUrl/auth/login');
       final response = await http
           .post(
-            Uri.parse('$baseUrl/api/auth/login'),
+            Uri.parse('$baseUrl/auth/login'),
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -92,7 +100,7 @@ class ApiService {
               'password': password,
             }),
           )
-          .timeout(const Duration(seconds: 60));
+          .timeout(const Duration(seconds: 10));
 
       debugPrint('API Response [login]: ${response.statusCode}');
       final decoded = json.decode(response.body);
@@ -131,7 +139,7 @@ class ApiService {
             Uri.parse(url),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 30)); // Reduced to 30s to trigger fallback faster
+          .timeout(const Duration(seconds: 10)); // Reduced to 30s to trigger fallback faster
 
       debugPrint('API Response Status: [activities] ${response.statusCode}');
       

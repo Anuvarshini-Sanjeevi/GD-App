@@ -35,6 +35,39 @@ class _LoginPageState extends State<LoginPage> {
       debugPrint('Login Response Keys: ${response.keys.toList()}');
       final token = response['token'] ?? response['accessToken'] ?? response['data']?['token'];
       
+      // Extract user role from response (handle various formats)
+      String? userRole;
+      if (response['role'] != null) {
+        userRole = response['role'].toString();
+      } else if (response['user']?['role'] != null) {
+        userRole = response['user']['role'].toString();
+      } else if (response['data']?['role'] != null) {
+        userRole = response['data']['role'].toString();
+      } else if (response['data']?['user']?['role'] != null) {
+        userRole = response['data']['user']['role'].toString();
+      }
+      
+      debugPrint('Extracted role: $userRole');
+      
+      // Validate that the user has STUDENT role
+      if (userRole == null) {
+        throw Exception('Unable to determine user role. Please contact support.');
+      }
+      
+      final roleUpper = userRole.toUpperCase();
+      if (roleUpper != 'STUDENT') {
+        // Provide specific error messages based on role
+        String errorMessage;
+        if (roleUpper == 'ADMIN') {
+          errorMessage = 'This app is only for students. Please use the admin portal.';
+        } else if (roleUpper == 'SUPERVISOR') {
+          errorMessage = 'This app is only for students. Please use the supervisor portal.';
+        } else {
+          errorMessage = 'This app is only for students. Your role ($userRole) is not authorized.';
+        }
+        throw Exception(errorMessage);
+      }
+      
       if (token != null) {
         debugPrint('Token extracted successfully');
         ApiService.authToken = token.toString();
