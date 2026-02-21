@@ -1,0 +1,12 @@
+﻿{
+    "admin_id":  1,
+    "name":  "Initial Admin",
+    "email":  "admin@example.com",
+    "password_hash":  "$2b$10$vWwvL5kSmqjM/QKVdT84G..dUtOTJw/X4rF6IkUPPcM53SFlRVOhq",
+    "photo":  null,
+    "phone":  null,
+    "is_active":  true,
+    "last_login":  null,
+    "createdAt":  "2026-02-09T16:13:05.000Z",
+    "updatedAt":  "2026-02-09T16:13:05.000Z"
+}

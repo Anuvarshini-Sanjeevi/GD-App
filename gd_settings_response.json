@@ -1,0 +1,14 @@
+﻿{
+    "activity_type":  "GROUP_DISCUSSION",
+    "advancement_pts":  99,
+    "max_capacity":  10,
+    "time_limit_min":  15,
+    "cool_down_sec":  120,
+    "weight_technical":  60,
+    "weight_communication":  35,
+    "weight_synergy":  25,
+    "auto_rewards":  true,
+    "intel_feedback":  true,
+    "createdAt":  "2026-02-11T05:42:28.000Z",
+    "updatedAt":  "2026-02-11T05:51:33.000Z"
+}

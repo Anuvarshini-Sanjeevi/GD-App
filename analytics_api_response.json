@@ -1,0 +1,70 @@
+﻿{
+    "value":  [
+                  {
+                      "id":  196,
+                      "student_id":  null,
+                      "name":  "Alpha Team",
+                      "photo":  null,
+                      "activity_type":  "GROUP_DISCUSSION",
+                      "level":  "OVERALL",
+                      "rank":  1,
+                      "points":  1008,
+                      "trend":  "SAME",
+                      "createdAt":  "2026-02-11T03:55:14.000Z",
+                      "updatedAt":  "2026-02-11T03:55:14.000Z"
+                  },
+                  {
+                      "id":  197,
+                      "student_id":  null,
+                      "name":  "Gamma Group",
+                      "photo":  null,
+                      "activity_type":  "GROUP_DISCUSSION",
+                      "level":  "OVERALL",
+                      "rank":  2,
+                      "points":  968,
+                      "trend":  "UP",
+                      "createdAt":  "2026-02-11T03:55:14.000Z",
+                      "updatedAt":  "2026-02-11T03:55:14.000Z"
+                  },
+                  {
+                      "id":  198,
+                      "student_id":  null,
+                      "name":  "Delta Force",
+                      "photo":  null,
+                      "activity_type":  "GROUP_DISCUSSION",
+                      "level":  "OVERALL",
+                      "rank":  3,
+                      "points":  903,
+                      "trend":  "UP",
+                      "createdAt":  "2026-02-11T03:55:14.000Z",
+                      "updatedAt":  "2026-02-11T03:55:14.000Z"
+                  },
+                  {
+                      "id":  199,
+                      "student_id":  null,
+                      "name":  "Beta Squad",
+                      "photo":  null,
+                      "activity_type":  "GROUP_DISCUSSION",
+                      "level":  "OVERALL",
+                      "rank":  4,
+                      "points":  869,
+                      "trend":  "UP",
+                      "createdAt":  "2026-02-11T03:55:14.000Z",
+                      "updatedAt":  "2026-02-11T03:55:14.000Z"
+                  },
+                  {
+                      "id":  200,
+                      "student_id":  null,
+                      "name":  "Unknown Team",
+                      "photo":  null,
+                      "activity_type":  "GROUP_DISCUSSION",
+                      "level":  "OVERALL",
+                      "rank":  5,
+                      "points":  813,
+                      "trend":  "DOWN",
+                      "createdAt":  "2026-02-11T03:55:14.000Z",
+                      "updatedAt":  "2026-02-11T03:55:14.000Z"
+                  }
+              ],
+    "Count":  5
+}
