@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:gdapp/supervisor/table_monitor_page.dart';
+import 'package:gdapp/supervisor/sessions_page.dart';
+import 'package:gdapp/supervisor/current_otp_page.dart';
+import 'package:gdapp/services/api_service.dart';
 
 class SupervisorDashboardPage extends StatefulWidget {
   const SupervisorDashboardPage({Key? key}) : super(key: key);
@@ -9,35 +13,113 @@ class SupervisorDashboardPage extends StatefulWidget {
 }
 
 class _SupervisorDashboardPageState extends State<SupervisorDashboardPage> {
+  List<dynamic> _sessions = [];
+  bool _isLoading = true;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSessions();
+    // Refresh sessions every minute to keep OTP and status updated
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _fetchSessions();
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchSessions() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      final List<dynamic> allSessions = await ApiService.getHallQrTokens();
+      
+      final now = DateTime.now();
+      final oneHourLater = now.add(const Duration(hours: 1));
+      final twoHoursLater = now.add(const Duration(hours: 2));
+
+      final filteredSessions = allSessions.where((s) {
+        final Map<String, dynamic> data = s is Map ? (s['session'] ?? s['session_config'] ?? s['sessionConfig'] ?? s) : {};
+        final String? timeStr = data['start_time']?.toString() ?? data['startTime']?.toString();
+        
+        if (timeStr == null || timeStr.isEmpty) return false;
+
+        DateTime? startTime;
+        // Try parsing as ISO
+        startTime = DateTime.tryParse(timeStr);
+        
+        // If it's just "HH:mm" or "HH:mm:ss", try to combine with today's date
+        if (startTime == null && timeStr.contains(':')) {
+           try {
+             final parts = timeStr.split(':');
+             final hour = int.parse(parts[0]);
+             final minute = int.parse(parts[1]);
+             startTime = DateTime(now.year, now.month, now.day, hour, minute);
+             
+             // If the parsed time is already past today, it might be for tomorrow, or just an old entry.
+             // But for "coming in 1-2 hours", we'll assume today.
+           } catch (_) {}
+        }
+
+        if (startTime == null) return false;
+
+        return startTime.isAfter(oneHourLater) && startTime.isBefore(twoHoursLater);
+      }).toList();
+
+      if (mounted) {
+        setState(() {
+          _sessions = filteredSessions;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching sessions on dashboard: $e');
+      if (mounted) {
+        setState(() {
+          _sessions = [];
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              _buildHeader(),
-              
-              const SizedBox(height: 24),
-              
-              // Stats Cards
-              _buildStatsCards(),
-              
-              const SizedBox(height: 28),
-              
-              // Current Session
-              _buildCurrentSessionSection(),
-              
-              const SizedBox(height: 28),
-              
-              // Up Next Section
-              _buildUpNextSection(),
-              
-              const SizedBox(height: 80), // Add space for bottom nav
-            ],
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F9FF),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                _buildHeader(),
+                
+                const SizedBox(height: 24),
+                
+                // Stats Cards
+                _buildStatsCards(),
+                
+                const SizedBox(height: 28),
+                
+                // Current Session
+                _buildCurrentSessionSection(),
+                
+                const SizedBox(height: 28),
+                
+                // Up Next Section
+                _buildUpNextSection(),
+                
+                const SizedBox(height: 80), // Add space for bottom nav
+              ],
+            ),
           ),
         ),
       ),
@@ -53,7 +135,8 @@ class _SupervisorDashboardPageState extends State<SupervisorDashboardPage> {
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Color(0xFF0D2146),
+            letterSpacing: -0.5,
           ),
         ),
         Row(
@@ -195,8 +278,8 @@ class _SupervisorDashboardPageState extends State<SupervisorDashboardPage> {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
+              color: const Color(0xFF0D2146).withOpacity(0.6),
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -211,26 +294,157 @@ class _SupervisorDashboardPageState extends State<SupervisorDashboardPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'CURRENT SESSION',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey,
-                letterSpacing: 0.5,
-              ),
+        const Text(
+          'ACTIVE SESSIONS',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF667085),
+            letterSpacing: 1.2,
+          ),
+        ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        
+        if (_isLoading)
+          const Center(child: Padding(
+            padding: EdgeInsets.all(20),
+            child: CircularProgressIndicator(),
+          ))
+        else if (_sessions.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.withOpacity(0.1)),
             ),
+            child: Column(
+              children: [
+                Icon(Icons.event_busy, color: Colors.grey[300], size: 40),
+                const SizedBox(height: 12),
+                Text(
+                  'No event live',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                ),
+              ],
+            ),
+          )
+        else
+          _buildLivePreviewCard(),
+      ],
+    );
+  }
+
+  Widget _buildLivePreviewCard() {
+    // Get the first active session or just the first one
+    final session = _sessions.firstWhere(
+      (s) => s['is_active'] == true || s['status']?.toString().toUpperCase() == 'ACTIVE',
+      orElse: () => _sessions.first,
+    );
+
+    final Map<String, dynamic> sessionData = session is Map ? (session['session'] ?? session['session_config'] ?? session['sessionConfig'] ?? session) : {};
+    
+    final String title = sessionData['topic'] ?? 
+                        sessionData['session_name'] ?? 
+                        sessionData['sessionName'] ?? 
+                        sessionData['name'] ?? 
+                        'GD Session';
+                        
+    final String hall = sessionData['hall'] ?? 
+                       sessionData['hall_name'] ?? 
+                       sessionData['hallName'] ?? 
+                       'Main Hall';
+                       
+    final bool isActive = (sessionData['status']?.toString().toUpperCase() == 'ACTIVE') || 
+                          (sessionData['is_active'] == true) ||
+                          (session['status']?.toString().toUpperCase() == 'ACTIVE') ||
+                          (session['is_active'] == true);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF4A7FFF),
+            Color(0xFF5B8FFF),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4A7FFF).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      sessionData['targetLevel']?.toString() ?? sessionData['target_level']?.toString() ?? 'GD Level 2',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.bolt,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ],
+          ),
+          if (isActive) ...[
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: const [
                   Icon(
                     Icons.circle,
-                    color: Colors.red,
+                    color: Colors.white,
                     size: 8,
                   ),
                   SizedBox(width: 6),
@@ -239,143 +453,133 @@ class _SupervisorDashboardPageState extends State<SupervisorDashboardPage> {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: Colors.red,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF4A7FFF),
-                Color(0xFF5B8FFF),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF4A7FFF).withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Design Thinking\nSprint',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            height: 1.2,
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                        Text(
-                          'GD Level 2 • Week 4',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                  const Text(
+                    'LOCATION',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white60,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.bolt,
+                  const SizedBox(height: 4),
+                  Text(
+                    hall,
+                    style: const TextStyle(
+                      fontSize: 16,
                       color: Colors.white,
-                      size: 28,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'LOCATION',
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TableMonitorPage(
+                              session: session,
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF4A7FFF),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Enter Session',
                         style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.white60,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
                         ),
                       ),
-                      SizedBox(height: 6),
-                      Text(
-                        'Hall A',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                  ElevatedButton(
+                  const SizedBox(width: 12),
+                  // Current OTP Display
+                  if (isActive)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'JOIN OTP',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          Text(
+                            session['current_otp']?.toString() ?? '...',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(width: 12),
+                  IconButton(
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const TableMonitorPage(),
+                          builder: (context) => const CurrentOtpPage(),
                         ),
                       );
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF4A7FFF),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 14,
+                    icon: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Enter Session',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      child: const Icon(Icons.qr_code, color: Colors.white),
                     ),
                   ),
                 ],
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -383,14 +587,35 @@ class _SupervisorDashboardPageState extends State<SupervisorDashboardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'UP NEXT',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.grey,
-            letterSpacing: 0.5,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'UP NEXT',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF667085),
+                letterSpacing: 1.2,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SessionsPage()),
+                ).then((_) => _fetchSessions());
+              },
+              child: const Text(
+                'View All',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF4A7FFF),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         _buildUpNextCard(
@@ -444,8 +669,8 @@ class _SupervisorDashboardPageState extends State<SupervisorDashboardPage> {
               time,
               style: const TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0D2146),
               ),
             ),
           ),
@@ -458,8 +683,8 @@ class _SupervisorDashboardPageState extends State<SupervisorDashboardPage> {
                   title,
                   style: const TextStyle(
                     fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0D2146),
                   ),
                 ),
                 const SizedBox(height: 6),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gdapp/supervisor/dashboard_page.dart';
+import 'package:gdapp/supervisor/supervisor_shell.dart';
 
 void main() {
   runApp(const SupervisorApp());
@@ -12,12 +12,13 @@ class SupervisorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Supervisor Dashboard',
-      debugShowCheckedModeBanner: true,
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.blue,
         fontFamily: 'Inter',
+        useMaterial3: true,
       ),
-      home: const SupervisorDashboardPage(),
+      home: const SupervisorShell(),
     );
   }
 }

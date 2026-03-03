@@ -1,3 +1,5 @@
+import 'package:gdapp/models/student_activity.dart';
+
 class SessionConfig {
   final String id;
   final String sessionName;
@@ -9,8 +11,12 @@ class SessionConfig {
   final String status;
   final String? targetLevel;
   final String? alert;
+  final String? token;
+  final String? expiryTime;
+  final String? joiningTime;
+  final StudentActivity? activity;
 
-  SessionConfig({
+  const SessionConfig({
     required this.id,
     required this.sessionName,
     required this.topic,
@@ -21,6 +27,10 @@ class SessionConfig {
     required this.status,
     this.targetLevel,
     this.alert,
+    this.token,
+    this.expiryTime,
+    this.joiningTime,
+    this.activity,
   });
 
   factory SessionConfig.fromJson(Map<String, dynamic> json) {
@@ -28,6 +38,11 @@ class SessionConfig {
     String? rawDate = json['date'] ?? json['sessionDate'] ?? json['session_date'] ?? json['createdAt'];
     String? rawStartTime = json['startTime'] ?? json['start_time'] ?? json['createdAt'];
     String? rawEndTime = json['endTime'] ?? json['end_time'];
+
+    // Timings handling
+    Map<String, dynamic>? timings = json['timings'];
+    String? expiryTime = timings?['expiry_time'] ?? timings?['expiryTime'] ?? json['expiryTime'] ?? json['expiry_time'];
+    String? joiningTime = timings?['joining_time'] ?? timings?['joiningTime'] ?? json['joiningTime'] ?? json['joining_time'];
 
     // If session_id exists, use it as a default topic/name if missing
     String? sid = json['session_id']?.toString() ?? json['session_id']?.toString();
@@ -44,6 +59,9 @@ class SessionConfig {
       status: json['status'] ?? 'UPCOMING',
       targetLevel: json['targetLevel']?.toString() ?? json['target_level']?.toString(),
       alert: json['alert'] ?? json['prerequisite'],
+      token: json['token']?.toString() ?? json['qr_token']?.toString(),
+      expiryTime: expiryTime,
+      joiningTime: joiningTime,
     );
   }
 }

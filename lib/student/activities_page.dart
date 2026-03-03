@@ -240,7 +240,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text('Levels: ${activity.level}',
+                Text('Levels: ${activity.levels}',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                 const SizedBox(height: 8),
                 _buildProgressIndicator(activity),
@@ -253,7 +253,7 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   }
 
   Widget _buildProgressIndicator(StudentActivity activity) {
-    final total = activity.level;
+    final total = activity.levels;
     final exact = (activity.progress * total).clamp(0.0, total.toDouble());
     final full = exact.floor();
     final fraction = (exact - full).clamp(0.0, 1.0);

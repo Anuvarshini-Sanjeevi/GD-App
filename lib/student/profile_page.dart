@@ -1,13 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:gdapp/services/auth_service.dart';
+import 'package:gdapp/services/api_service.dart';
 import 'package:gdapp/login_page.dart';
 
-class ProfilePage extends StatelessWidget {
-  final Function(int) onNavigate;
+class ProfilePage extends StatefulWidget {
+  final Function(int, {bool? showScanner}) onNavigate;
   const ProfilePage({Key? key, required this.onNavigate}) : super(key: key);
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  Map<String, dynamic>? _profile;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+      final profile = await ApiService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading profile: $e');
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Error: $_error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadProfile,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final user = _profile?['user'] ?? _profile;
+    final name = user?['name']?.toString() ?? user?['full_name']?.toString() ?? 'Student';
+    final role = user?['role']?.toString() ?? 'Scholar';
+    final level = user?['level']?.toString() ?? user?['current_level']?.toString() ?? '-';
+    final batch = user?['batch']?.toString() ?? user?['year']?.toString() ?? '-';
+    final department = user?['department']?.toString() ?? user?['dept']?.toString() ?? 'Not Assigned';
+    final rollNumber = user?['rollNumber']?.toString() ?? user?['roll_number']?.toString() ?? user?['username']?.toString() ?? '-';
+    final email = user?['email']?.toString() ?? 'No Email';
+    final phone = user?['phone']?.toString() ?? user?['phone_number']?.toString() ?? user?['phoneNumber']?.toString() ?? 'No Phone';
+    final campus = user?['campus']?.toString() ?? user?['location']?.toString() ?? 'Not Specified';
+    final experience = user?['experience']?.toString() ?? user?['exp']?.toString() ?? user?['xp']?.toString() ?? '0';
+    final rank = user?['rank']?.toString() ?? user?['position']?.toString() ?? '-';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: AppBar(
@@ -51,19 +128,27 @@ class ProfilePage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const CircleAvatar(
+                      child: CircleAvatar(
                         radius: 55,
-                        backgroundImage: NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60'),
+                        backgroundColor: const Color(0xFFE5EDFF),
+                        child: Text(
+                          name.isNotEmpty ? name[0].toUpperCase() : 'S',
+                          style: const TextStyle(
+                            color: Color(0xFF2E63F2),
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
-                    
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Priya Sharma',
-                style: TextStyle(
+              Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0D2146),
@@ -76,9 +161,9 @@ class ProfilePage extends StatelessWidget {
                   color: const Color(0xFFF3F7FF),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'Level 4 Scholar • Batch 2021-25',
-                  style: TextStyle(
+                child: Text(
+                  '$level • Batch $batch',
+                  style: const TextStyle(
                     color: Colors.grey,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -89,18 +174,25 @@ class ProfilePage extends StatelessWidget {
               // Info Grid
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.6,
+                child: Column(
                   children: [
-                    _buildInfoCard('Department', 'Comp. Science'),
-                    _buildInfoCard('Roll Number', 'CS21B104'),
-                    _buildInfoCard('Rank', '#23', isIcon: true, icon: Icons.emoji_events_outlined, iconColor: Colors.orange),
-                    _buildInfoCard('Experience', '1,240 XP', isIcon: true, icon: Icons.bolt, iconColor: Colors.blue),
+                    Row(
+                      children: [
+                        Expanded(child: _buildInfoCard('Roll Number', rollNumber)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildInfoCard('Batch', batch)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: _buildInfoCard('Department', department)),
+                        const SizedBox(width: 12),
+                        Expanded(child: _buildInfoCard('Rank', '#$rank', isIcon: true, icon: Icons.emoji_events_outlined, iconColor: Colors.orange)),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoCard('Experience', '$experience XP', isIcon: true, icon: Icons.bolt, iconColor: Colors.blue),
                   ],
                 ),
               ),
@@ -117,32 +209,15 @@ class ProfilePage extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildDetailRow(Icons.email_outlined, 'Email', 'priya.s@university.edu'),
+                    _buildDetailRow(Icons.email_outlined, 'Email', email),
                     const Divider(height: 24),
-                    _buildDetailRow(Icons.phone_outlined, 'Phone', '+91 98765 43210'),
+                    _buildDetailRow(Icons.phone_outlined, 'Phone', phone),
                     const Divider(height: 24),
-                    _buildDetailRow(Icons.location_on_outlined, 'Campus', 'South Block, Hall B'),
+                    _buildDetailRow(Icons.location_on_outlined, 'Campus', campus),
                   ],
                 ),
               ),
              
-              const SizedBox(height: 24),
-              // Menu Items
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                
-              ),
               const SizedBox(height: 24),
               // Log Out Button
               Padding(
@@ -239,24 +314,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSkillTag(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE8EFFF),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Color(0xFF4A7FFF),
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
   Widget _buildInfoCard(String title, String value, {bool isIcon = false, IconData? icon, Color? iconColor}) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -284,46 +341,21 @@ class ProfilePage extends StatelessWidget {
                 Icon(icon, size: 16, color: iconColor),
                 const SizedBox(width: 4),
               ],
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0D2146),
+              Expanded(
+                child: Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0D2146),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required Color iconBgColor,
-    required Color iconColor,
-  }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: iconBgColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: iconColor, size: 20),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF0D2146),
-        ),
-      ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 18),
-      onTap: () {},
     );
   }
 }

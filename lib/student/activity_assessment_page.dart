@@ -4,10 +4,12 @@ import 'dart:async';
 
 class ActivityAssessmentPage extends StatefulWidget {
   final List<TeamMember> teamMembers;
+  final List<String> questions;
   
   const ActivityAssessmentPage({
     Key? key,
     required this.teamMembers,
+    required this.questions,
   }) : super(key: key);
 
   @override
@@ -15,8 +17,8 @@ class ActivityAssessmentPage extends StatefulWidget {
 }
 
 class _ActivityAssessmentPageState extends State<ActivityAssessmentPage> {
-  int currentQuestion = 1;
-  final int totalQuestions = 5;
+  int currentQuestionIndex = 0;
+  late int totalQuestions;
   int remainingTime = 300; // 5 minutes in seconds
   
   TeamMember? firstPlace;
@@ -33,6 +35,7 @@ class _ActivityAssessmentPageState extends State<ActivityAssessmentPage> {
     availableMembers = widget.teamMembers
         .where((member) => !member.isYou)
         .toList();
+    totalQuestions = widget.questions.length;
     _startTimer();
   }
 
@@ -141,7 +144,7 @@ class _ActivityAssessmentPageState extends State<ActivityAssessmentPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Question $currentQuestion of $totalQuestions',
+                      'Question ${currentQuestionIndex + 1} of $totalQuestions',
                       style: const TextStyle(
                         color: Color(0xFF4A7FFF),
                         fontSize: 12,
@@ -172,9 +175,11 @@ class _ActivityAssessmentPageState extends State<ActivityAssessmentPage> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Who was the most active participant\nin this session?',
-                  style: TextStyle(
+                Text(
+                  widget.questions.isNotEmpty 
+                      ? widget.questions[currentQuestionIndex]
+                      : 'No question available for this session.',
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -608,9 +613,9 @@ class _ActivityAssessmentPageState extends State<ActivityAssessmentPage> {
   }
 
   void _nextQuestion() {
-    if (currentQuestion < totalQuestions) {
+    if (currentQuestionIndex < totalQuestions - 1) {
       setState(() {
-        currentQuestion++;
+        currentQuestionIndex++;
         firstPlace = null;
         secondPlace = null;
         thirdPlace = null;

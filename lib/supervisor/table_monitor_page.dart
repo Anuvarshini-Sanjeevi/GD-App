@@ -1,40 +1,159 @@
 import 'package:flutter/material.dart';
+import 'package:gdapp/services/api_service.dart';
 
 class TableMonitorPage extends StatefulWidget {
-  const TableMonitorPage({Key? key}) : super(key: key);
+  final dynamic session;
+  const TableMonitorPage({Key? key, required this.session}) : super(key: key);
 
   @override
   State<TableMonitorPage> createState() => _TableMonitorPageState();
 }
 
 class _TableMonitorPageState extends State<TableMonitorPage> {
+  dynamic _latestSession;
+  bool _isLoading = true;
+  String? _errorMessage;
+  int _totalTables = 12;
+  late TextEditingController _tableCountController;
+
+  @override
+  void initState() {
+    super.initState();
+    _latestSession = widget.session;
+    _tableCountController = TextEditingController(text: _totalTables.toString());
+    _fetchLatestData();
+  }
+
+  @override
+  void dispose() {
+    _tableCountController.dispose();
+    super.dispose();
+  }
+
+  void _updateTableCount(int newCount) {
+    if (newCount < 1) return;
+    setState(() {
+      _totalTables = newCount;
+      _tableCountController.text = _totalTables.toString();
+    });
+  }
+
+  Future<void> _fetchLatestData() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      debugPrint('TableMonitorPage: Fetching latest session data...');
+      final sessions = await ApiService.getHallQrTokens();
+      
+      // Better ID extraction helper
+      String? getExtractedId(dynamic s) {
+        if (s == null || s is! Map) return null;
+        // Prioritize session_id then id then nested ids
+        final id = (s['session_id']?.toString() ?? 
+                    s['id']?.toString() ?? 
+                    s['session']?['id']?.toString() ?? 
+                    s['session']?['session_id']?.toString() ??
+                    s['session_config']?['id']?.toString() ??
+                    s['sessionConfig']?['id']?.toString());
+        return id;
+      }
+
+      final targetId = getExtractedId(widget.session);
+      debugPrint('TableMonitorPage: Targeting Session ID: $targetId');
+      
+      if (sessions.isNotEmpty && targetId != null) {
+        // Find the specific session based on the ID we're monitoring
+        dynamic updated;
+        try {
+          updated = sessions.firstWhere(
+            (s) {
+              final currentId = getExtractedId(s);
+              return currentId == targetId;
+            },
+          );
+          debugPrint('TableMonitorPage: Found matching session in live feed');
+        } catch (_) {
+          debugPrint('TableMonitorPage: Session $targetId not found in live feed, using passed data');
+          updated = widget.session;
+        }
+        
+        if (mounted) {
+          setState(() {
+            _latestSession = updated;
+            _isLoading = false;
+          });
+        }
+      } else {
+        debugPrint('TableMonitorPage: Sessions list empty or Target ID null. Sessions: ${sessions.length}, ID: $targetId');
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      }
+    } catch (e) {
+      debugPrint('TableMonitorPage: Error fetching session details: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load live data';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                _buildHeader(),
-                
-                const SizedBox(height: 24),
-                
-                // Live Session Card
-                _buildLiveSessionCard(),
-                
-                const SizedBox(height: 24),
-                
-                // Table Monitor Section
-                _buildTableMonitorSection(),
-              ],
+        child: _isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _fetchLatestData,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      _buildHeader(),
+                      
+                      const SizedBox(height: 24),
+                      
+                      if (_errorMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline, color: Colors.red, size: 20),
+                              const SizedBox(width: 8),
+                              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                            ],
+                          ),
+                        ),
+
+                      // Live Session Card
+                      _buildLiveSessionCard(),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Table Monitor Section
+                      _buildTableMonitorSection(),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
       ),
     );
   }
@@ -50,10 +169,10 @@ class _TableMonitorPageState extends State<TableMonitorPage> {
           constraints: const BoxConstraints(),
         ),
         const SizedBox(width: 16),
-        const Expanded(
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: const [
               Text(
                 'Back to',
                 style: TextStyle(
@@ -106,6 +225,26 @@ class _TableMonitorPageState extends State<TableMonitorPage> {
   }
 
   Widget _buildLiveSessionCard() {
+    final Map<String, dynamic> sessionData = _latestSession is Map ? (_latestSession['session'] ?? _latestSession['session_config'] ?? _latestSession['sessionConfig'] ?? _latestSession) : {};
+
+    final String title = sessionData['topic'] ?? 
+                        sessionData['session_name'] ?? 
+                        sessionData['sessionName'] ?? 
+                        sessionData['name'] ?? 
+                        sessionData['title'] ??
+                        _latestSession['topic'] ??
+                        _latestSession['session_name'] ??
+                        _latestSession['session_id']?.toString() ??
+                        'Unnamed Session';
+                        
+    final String hall = sessionData['hall'] ?? 
+                       sessionData['hall_name'] ?? 
+                       sessionData['hallName'] ?? 
+                       sessionData['location'] ?? 
+                       _latestSession['hall'] ??
+                       _latestSession['hall_name'] ??
+                       'Unknown Hall';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -149,9 +288,9 @@ class _TableMonitorPageState extends State<TableMonitorPage> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Tech Strategy Finals',
-            style: TextStyle(
+          Text(
+            title,
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.black,
@@ -167,7 +306,7 @@ class _TableMonitorPageState extends State<TableMonitorPage> {
               ),
               const SizedBox(width: 4),
               Text(
-                'Level 4 Target',
+                hall,
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -175,6 +314,7 @@ class _TableMonitorPageState extends State<TableMonitorPage> {
               ),
             ],
           ),
+
           const SizedBox(height: 20),
           Row(
             children: [
@@ -190,13 +330,41 @@ class _TableMonitorPageState extends State<TableMonitorPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      '12',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+                    Row(
+                      children: [
+                        _buildCountStepperButton(
+                          icon: Icons.keyboard_arrow_down,
+                          onPressed: () => _updateTableCount(_totalTables - 1),
+                        ),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 40,
+                          child: TextField(
+                            controller: _tableCountController,
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.center,
+                            onSubmitted: (val) {
+                              final count = int.tryParse(val);
+                              if (count != null) _updateTableCount(count);
+                            },
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildCountStepperButton(
+                          icon: Icons.keyboard_arrow_up,
+                          onPressed: () => _updateTableCount(_totalTables + 1),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -227,6 +395,21 @@ class _TableMonitorPageState extends State<TableMonitorPage> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCountStepperButton({required IconData icon, required VoidCallback onPressed}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0F4FF),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 24, color: const Color(0xFF4A7FFF)),
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       ),
     );
   }
@@ -262,57 +445,92 @@ class _TableMonitorPageState extends State<TableMonitorPage> {
         ),
         const SizedBox(height: 12),
         
-        // Table 05 - Running
-        _buildTableCard(
-          tableNumber: 'Table 05',
-          status: 'RUNNING',
-          statusColor: const Color(0xFF4A7FFF),
-          presentCount: '6/6 Present',
-          timeInfo: '14:32',
-          showTimer: true,
-          actionButton: _buildEngagementButton(),
-        ),
-        
-        const SizedBox(height: 12),
-        
-        // Table 06 - Waiting
-        _buildTableCard(
-          tableNumber: 'Table 06',
-          status: 'WAITING',
-          statusColor: Colors.grey,
-          presentCount: '4/6 Present',
-          timeInfo: 'Auto-start: 2m',
-          showTimer: true,
-          actionButton: _buildStartSessionButton(),
-        ),
-        
-        const SizedBox(height: 12),
-        
-        // Table 07 - Rating Pending
-        _buildTableCard(
-          tableNumber: 'Table 07',
-          status: 'RATING PENDING',
-          statusColor: Colors.orange,
-          presentCount: '5/5 Present',
-          timeInfo: 'Finished 2m ago',
-          showTimer: false,
-          actionButton: _buildRatingButtons(),
-          showFinishedInfo: true,
-        ),
-        
-        const SizedBox(height: 12),
-        
-        // Table 04 - Finished
-        _buildTableCard(
-          tableNumber: 'Table 04',
-          status: 'FINISHED',
-          statusColor: const Color(0xFF34C759),
-          presentCount: 'Rated Low',
-          timeInfo: 'Feedback added',
-          showTimer: false,
-          actionButton: _buildUpdateStatusButton(),
-          isFinished: true,
-        ),
+        // Dynamically generate table cards
+        ...List.generate(_totalTables, (index) {
+          final tableNum = index + 1;
+          final tableStr = 'Table ${tableNum.toString().padLeft(2, '0')}';
+          
+          // Use real data pattern for some tables, placeholders for others
+          if (tableNum == 5) {
+            return Column(
+              children: [
+                _buildTableCard(
+                  tableNumber: tableStr,
+                  status: 'RUNNING',
+                  statusColor: const Color(0xFF4A7FFF),
+                  presentCount: '6/6 Present',
+                  timeInfo: '14:32',
+                  showTimer: true,
+                  actionButton: _buildEngagementButton(),
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          } else if (tableNum == 6) {
+            return Column(
+              children: [
+                _buildTableCard(
+                  tableNumber: tableStr,
+                  status: 'WAITING',
+                  statusColor: Colors.grey,
+                  presentCount: '4/6 Present',
+                  timeInfo: 'Auto-start: 2m',
+                  showTimer: true,
+                  actionButton: _buildStartSessionButton(),
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          } else if (tableNum == 7) {
+            return Column(
+              children: [
+                _buildTableCard(
+                  tableNumber: tableStr,
+                  status: 'RATING PENDING',
+                  statusColor: Colors.orange,
+                  presentCount: '5/5 Present',
+                  timeInfo: 'Finished 2m ago',
+                  showTimer: false,
+                  actionButton: _buildRatingButtons(),
+                  showFinishedInfo: true,
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          } else if (tableNum == 4) {
+            return Column(
+              children: [
+                _buildTableCard(
+                  tableNumber: tableStr,
+                  status: 'FINISHED',
+                  statusColor: const Color(0xFF34C759),
+                  presentCount: 'Rated Low',
+                  timeInfo: 'Feedback added',
+                  showTimer: false,
+                  actionButton: _buildUpdateStatusButton(),
+                  isFinished: true,
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          } else {
+            // Default placeholder for other tables
+            return Column(
+              children: [
+                _buildTableCard(
+                  tableNumber: tableStr,
+                  status: 'PENDING',
+                  statusColor: Colors.grey[400]!,
+                  presentCount: '0/6 Present',
+                  timeInfo: '--:--',
+                  showTimer: false,
+                  actionButton: _buildStartSessionButton(),
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          }
+        }),
       ],
     );
   }

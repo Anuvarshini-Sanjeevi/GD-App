@@ -375,7 +375,7 @@ class _ScanHallQRPageState extends State<ScanHallQRPage>
           child: Column(
             children: [
               const Text(
-                'Position the QR code within the frame',
+                'Position the QR code within the frame to scan',
                 style: TextStyle(
                   color: Color(0xFF0D2146),
                   fontSize: 16,
@@ -384,27 +384,32 @@ class _ScanHallQRPageState extends State<ScanHallQRPage>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
+              // Use OTP Button (Pill shape as in image)
               SizedBox(
-                width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: _isProcessing ? null : _simulateQRScan,
+                  onPressed: () {
+                    setState(() {
+                      _isScanning = false;
+                      _showOTPInput = true;
+                    });
+                  },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0D2146),
-                    side: BorderSide(color: const Color(0xFF0D2146).withOpacity(0.2)),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    backgroundColor: Colors.black,
+                    side: const BorderSide(color: Colors.white, width: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    shape: const StadiumBorder(),
                   ),
                   child: const Text(
-                    'Trouble scanning? Enter OTP',
+                    'Use OTP',
                     style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ),
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

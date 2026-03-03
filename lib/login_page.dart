@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gdapp/services/auth_service.dart';
 import 'package:gdapp/services/api_service.dart';
 import 'package:gdapp/student/dashboard_page.dart';
+import 'package:gdapp/supervisor/supervisor_shell.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -49,24 +50,12 @@ class _LoginPageState extends State<LoginPage> {
       
       debugPrint('Extracted role: $userRole');
       
-      // Validate that the user has STUDENT role
+      // Validate that the user has a supported role
       if (userRole == null) {
         throw Exception('Unable to determine user role. Please contact support.');
       }
       
       final roleUpper = userRole.toUpperCase();
-      if (roleUpper != 'STUDENT') {
-        // Provide specific error messages based on role
-        String errorMessage;
-        if (roleUpper == 'ADMIN') {
-          errorMessage = 'This app is only for students. Please use the admin portal.';
-        } else if (roleUpper == 'SUPERVISOR') {
-          errorMessage = 'This app is only for students. Please use the supervisor portal.';
-        } else {
-          errorMessage = 'This app is only for students. Your role ($userRole) is not authorized.';
-        }
-        throw Exception(errorMessage);
-      }
       
       if (token != null) {
         debugPrint('Token extracted successfully');
@@ -76,8 +65,17 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       if (mounted) {
+        Widget destination;
+        if (roleUpper == 'SUPERVISOR') {
+          destination = const SupervisorShell();
+        } else if (roleUpper == 'STUDENT') {
+          destination = const DashboardPage();
+        } else {
+          throw Exception('Your role ($userRole) is not supported in this app.');
+        }
+        
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DashboardPage()),
+          MaterialPageRoute(builder: (context) => destination),
         );
       }
     } catch (e) {

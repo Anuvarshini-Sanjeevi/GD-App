@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gdapp/services/api_service.dart';
+import 'package:gdapp/models/ranking_data.dart';
 
 class GrowthPage extends StatefulWidget {
-  final Function(int) onNavigate;
-  const GrowthPage({Key? key, required this.onNavigate}) : super(key: key);
+  final Function(int, {bool? showScanner}) onNavigate;
+  const GrowthPage({super.key, required this.onNavigate});
 
   @override
   State<GrowthPage> createState() => _GrowthPageState();
@@ -10,6 +12,8 @@ class GrowthPage extends StatefulWidget {
 
 class _GrowthPageState extends State<GrowthPage> {
   String _selectedTab = 'Overall';
+  bool _isLoading = false;
+  List<RankingData> _rankings = [];
 
   final List<Map<String, String>> _allRanks = [
     {'rank': '#1', 'name': 'Adhish S', 'team': 'Team A', 'score': '62'},
@@ -23,6 +27,34 @@ class _GrowthPageState extends State<GrowthPage> {
     {'rank': '#9', 'name': 'Deepika J', 'team': 'Team A', 'score': '15'},
     {'rank': '#10', 'name': 'Manoj V', 'team': 'Team B', 'score': '14'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRankings();
+  }
+
+  Future<void> _fetchRankings() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final rankings = await ApiService.getRankings();
+      if (mounted) {
+        setState(() {
+          _rankings = rankings;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,57 +116,103 @@ class _GrowthPageState extends State<GrowthPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.grey.shade100),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
-                    // Top Performers Podium
+                    // Top Performers Card Header
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildRankPodium(
-                            name: _selectedTab == 'Department' ? 'Rahul K' : 'Indhuja V',
-                            rank: '2',
-                            points: _selectedTab == 'Department' ? '45 pts' : '25 pts',
-                            height: 140,
-                            isWinner: false,
-                          ),
-                          _buildRankPodium(
-                            name: _selectedTab == 'Department' ? 'Priya D' : 'Adhish S',
-                            rank: '1',
-                            points: _selectedTab == 'Department' ? '88 pts' : '62 pts',
-                            height: 180,
-                            isWinner: true,
-                          ),
-                          _buildRankPodium(
-                            name: _selectedTab == 'Department' ? 'Sowmiya R' : 'Govarthini G',
-                            rank: '3',
-                            points: _selectedTab == 'Department' ? '32 pts' : '23 pts',
-                            height: 130,
-                            isWinner: false,
+                          const Text('🏆', style: TextStyle(fontSize: 24)),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Top Performers',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF0D2146),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const Divider(height: 1),
+                    const SizedBox(height: 16),
+                    // Top Performers Podium
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _buildRankPodium(
+                            name: _selectedTab == 'Skill wise' && _rankings.isNotEmpty ? _rankings[1].name : (_selectedTab == 'Department' ? 'Rahul K' : 'Indhuja V'),
+                            rank: '2',
+                            points: _selectedTab == 'Skill wise' && _rankings.isNotEmpty ? '${_rankings[1].score}' : (_selectedTab == 'Department' ? '45' : '25'),
+                            height: 160,
+                            color: const Color(0xFFEAECF0),
+                            borderColor: const Color(0xFF98A2B3),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildRankPodium(
+                            name: _selectedTab == 'Skill wise' && _rankings.length > 0 ? _rankings[0].name : (_selectedTab == 'Department' ? 'Priya D' : 'Adhish S'),
+                            rank: '1',
+                            points: _selectedTab == 'Skill wise' && _rankings.length > 0 ? '${_rankings[0].score}' : (_selectedTab == 'Department' ? '88' : '62'),
+                            height: 200,
+                            isWinner: true,
+                            color: const Color(0xFFFEF0C7),
+                            borderColor: const Color(0xFFF79009),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildRankPodium(
+                            name: _selectedTab == 'Skill wise' && _rankings.isNotEmpty ? _rankings[2].name : (_selectedTab == 'Department' ? 'Sowmiya R' : 'Govarthini G'),
+                            rank: '3',
+                            points: _selectedTab == 'Skill wise' && _rankings.isNotEmpty ? '${_rankings[2].score}' : (_selectedTab == 'Department' ? '32' : '23'),
+                            height: 150,
+                            color: const Color(0xFFFFE4D6),
+                            borderColor: const Color(0xFFF97066),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     // List
                     Expanded(
-                      child: ListView.builder(
-                        itemCount: _allRanks.length,
-                        itemBuilder: (context, index) {
-                          final item = _allRanks[index];
-                          return _buildRankItem(
-                            item['rank']!,
-                            item['name']!,
-                            item['team']!,
-                            item['score']!,
-                          );
-                        },
-                      ),
+                      child: _isLoading 
+                          ? const Center(child: CircularProgressIndicator())
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              itemCount: _selectedTab == 'Skill wise' && _rankings.isNotEmpty ? _rankings.length : _allRanks.length,
+                              itemBuilder: (context, index) {
+                                if (_selectedTab == 'Skill wise' && _rankings.isNotEmpty) {
+                                  final item = _rankings[index];
+                                  return _buildRankItem(
+                                    item.rank,
+                                    item.name,
+                                    item.rank == '#1' ? '7376231EI102' : '2024UEC5014', // Mock IDs
+                                    item.score.toString(),
+                                  );
+                                } else {
+                                  final item = _allRanks[index];
+                                  return _buildRankItem(
+                                    item['rank']!,
+                                    item['name']!,
+                                    index == 0 ? '7376231EI102' : '2024UEC5014', // Mock IDs
+                                    item['score']!,
+                                  );
+                                }
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -179,78 +257,138 @@ class _GrowthPageState extends State<GrowthPage> {
     required String rank,
     required String points,
     required double height,
-    required bool isWinner,
+    bool isWinner = false,
+    required Color color,
+    required Color borderColor,
   }) {
-    return Column(
-      children: [
-        Container(
-          width: 90,
-          height: height,
-          decoration: BoxDecoration(
-            color: isWinner ? const Color(0xFFE8EFFF) : const Color(0xFFF5F8FF),
-            borderRadius: BorderRadius.circular(12),
-            border: isWinner ? Border.all(color: const Color(0xFF4A7FFF), width: 1.5) : null,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                rank,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: isWinner ? const Color(0xFF4A7FFF) : Colors.grey.shade400,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0D2146),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4A7FFF),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  points,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
+    String medal = '';
+    if (rank == '1') medal = '🥇';
+    else if (rank == '2') medal = '🥈';
+    else if (rank == '3') medal = '🥉';
+
+    return Expanded(
+      child: Stack(
+        children: [
+          Container(
+            height: height,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: borderColor, width: 2),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                const SizedBox(height: 4),
+                CircleAvatar(
+                  radius: isWinner ? 28 : 24,
+                  backgroundColor: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.all(2),
+                    child: CircleAvatar(
+                      radius: isWinner ? 26 : 22,
+                      backgroundColor: const Color(0xFFE5EDFF),
+                      child: Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : 'S',
+                        style: TextStyle(
+                          fontSize: isWinner ? 20 : 16,
+                          color: const Color(0xFF2E63F2),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
+                Text(
+                  name.split(' ')[0].toUpperCase(),
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF344054),
+                    letterSpacing: 0.5,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: borderColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$points pts',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+              ],
+            ),
           ),
-        ),
-      ],
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Icon(
+              Icons.emoji_events_rounded,
+              color: borderColor,
+              size: 16,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildRankItem(String rank, String name, String team, String score) {
+  Widget _buildRankItem(String rank, String name, String id, String score) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F4F7),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                rank,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: Color(0xFF667085),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
           CircleAvatar(
-            radius: 18,
-            backgroundColor: Colors.grey.shade100,
+            radius: 20,
+            backgroundColor: const Color(0xFFE5EDFF),
             child: Text(
-              rank,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade500,
+              name.isNotEmpty ? name[0].toUpperCase() : 'S',
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF2E63F2),
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -264,12 +402,12 @@ class _GrowthPageState extends State<GrowthPage> {
                   name,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 15,
                     color: Color(0xFF0D2146),
                   ),
                 ),
                 Text(
-                  team,
+                  id,
                   style: TextStyle(
                     color: Colors.grey.shade500,
                     fontSize: 12,
@@ -284,8 +422,8 @@ class _GrowthPageState extends State<GrowthPage> {
               Text(
                 score,
                 style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 18,
                   color: Color(0xFF0D2146),
                 ),
               ),
@@ -294,6 +432,7 @@ class _GrowthPageState extends State<GrowthPage> {
                 style: TextStyle(
                   color: Colors.grey,
                   fontSize: 10,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -316,13 +455,13 @@ class _GrowthPageState extends State<GrowthPage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: const BoxDecoration(
-              color: Colors.blueAccent,
+              color: Colors.white,
               shape: BoxShape.circle,
             ),
             child: const Text(
-              '23',
+              'G',
               style: TextStyle(
-                color: Colors.white,
+                color: Color(0xFF4A7FFF),
                 fontWeight: FontWeight.bold,
               ),
             ),

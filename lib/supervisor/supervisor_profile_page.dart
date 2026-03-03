@@ -1,14 +1,123 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:gdapp/services/auth_service.dart';
+import 'package:gdapp/services/api_service.dart';
 import 'package:gdapp/login_page.dart';
 
-class SupervisorProfilePage extends StatelessWidget {
+class SupervisorProfilePage extends StatefulWidget {
   final VoidCallback? onBack;
 
   const SupervisorProfilePage({Key? key, this.onBack}) : super(key: key);
 
   @override
+  State<SupervisorProfilePage> createState() => _SupervisorProfilePageState();
+}
+
+class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
+  Map<String, dynamic>? _profile;
+  Map<String, dynamic>? _activeSession;
+  bool _isLoading = true;
+  String? _error;
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+    // Refresh active session every minute
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _loadActiveSession();
+    });
+  }
+
+  Future<void> _loadData() async {
+    await Future.wait([
+      _loadProfile(),
+      _loadActiveSession(),
+    ]);
+  }
+
+  Future<void> _loadActiveSession() async {
+    try {
+      final sessions = await ApiService.getHallQrTokens();
+      final active = sessions.firstWhere(
+        (s) => s['is_active'] == true || s['status']?.toString().toUpperCase() == 'ACTIVE',
+        orElse: () => null,
+      );
+      if (mounted) {
+        setState(() {
+          _activeSession = active;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading active session on profile: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+      final profile = await ApiService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          _profile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading profile: $e');
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_error != null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('Error: $_error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadProfile,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final user = _profile?['user'] ?? _profile;
+    final name = user?['name']?.toString() ?? 'Supervisor';
+    final role = user?['role']?.toString() ?? 'Faculty';
+    final department = user?['department']?.toString() ?? 'Not Assigned';
+    final office = user?['office']?.toString() ?? user?['location']?.toString() ?? 'Not Specified';
+    final email = user?['email']?.toString() ?? 'No Email';
+    final phone = user?['phone']?.toString() ?? user?['phoneNumber']?.toString() ?? 'No Phone';
+
     return Scaffold(
         backgroundColor: const Color(0xFFF8FAFF),
         body: SafeArea(
@@ -16,10 +125,14 @@ class SupervisorProfilePage extends StatelessWidget {
             child: Column(
               children: [
                 // Blue Header
-                _buildHeader(context),
+                _buildHeader(context, name, role),
 
                 // Floating Access Card
                 _buildAccessCard(),
+
+                // Active Session Card (New)
+                if (_activeSession != null)
+                  _buildActiveSessionCard(),
 
                 Padding(
                   padding:
@@ -33,13 +146,13 @@ class SupervisorProfilePage extends StatelessWidget {
                         _buildDetailItem(
                           icon: Icons.domain_outlined,
                           label: 'Department',
-                          value: 'Computer Science & Eng.',
+                          value: department,
                         ),
                         const Divider(height: 1, indent: 56),
                         _buildDetailItem(
                           icon: Icons.location_on_outlined,
                           label: 'Office Location',
-                          value: 'Science Block A, Room 304',
+                          value: office,
                         ),
                       ]),
 
@@ -51,13 +164,13 @@ class SupervisorProfilePage extends StatelessWidget {
                         _buildDetailItem(
                           icon: Icons.mail_outline,
                           label: 'Email Address',
-                          value: 'sarah.j@university.edu',
+                          value: email,
                         ),
                         const Divider(height: 1, indent: 56),
                         _buildDetailItem(
                           icon: Icons.phone_outlined,
                           label: 'Phone Number',
-                          value: '+1 (555) 123-4567',
+                          value: phone,
                         ),
                       ]),
 
@@ -85,7 +198,7 @@ class SupervisorProfilePage extends StatelessWidget {
         ));
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, String name, String role) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 60, bottom: 40),
@@ -100,7 +213,7 @@ class SupervisorProfilePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  onPressed: onBack ?? () => Navigator.pop(context),
+                  onPressed: widget.onBack ?? () => Navigator.pop(context),
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                 ),
                 const Text(
@@ -124,16 +237,23 @@ class SupervisorProfilePage extends StatelessWidget {
               border:
                   Border.all(color: Colors.white.withOpacity(0.2), width: 1),
             ),
-            child: const CircleAvatar(
+            child: CircleAvatar(
               radius: 50,
-              backgroundColor: Colors.white24,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=32'),
+              backgroundColor: Colors.white,
+              child: Text(
+                name.isNotEmpty ? name[0].toUpperCase() : 'S',
+                style: const TextStyle(
+                  color: Color(0xFF2563EB),
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Dr. Sarah Johnson',
-            style: TextStyle(
+          Text(
+            name,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -141,7 +261,7 @@ class SupervisorProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Assistant Professor',
+            role,
             style: TextStyle(
               color: Colors.white.withOpacity(0.8),
               fontSize: 15,
@@ -233,10 +353,10 @@ class SupervisorProfilePage extends StatelessWidget {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: TextStyle(
+      style: const TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF64748B),
+        color: Color(0xFF64748B),
         letterSpacing: 0.5,
       ),
     );
@@ -271,9 +391,9 @@ class SupervisorProfilePage extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
-                  color: const Color(0xFF94A3B8),
+                  color: Color(0xFF94A3B8),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -320,7 +440,7 @@ class SupervisorProfilePage extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            Icon(Icons.chevron_right, color: const Color(0xFF94A3B8), size: 20),
+            const Icon(Icons.chevron_right, color: Color(0xFF94A3B8), size: 20),
           ],
         ),
       ),
@@ -362,6 +482,102 @@ class SupervisorProfilePage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildActiveSessionCard() {
+    final Map<String, dynamic> sessionData = _activeSession is Map 
+        ? (_activeSession!['session'] ?? _activeSession!['session_config'] ?? _activeSession!) 
+        : {};
+    
+    final String title = sessionData['topic'] ?? 'Active Session';
+    final String hall = sessionData['hall'] ?? 'Main Hall';
+    final String otp = _activeSession!['current_otp']?.toString() ?? 
+                      _activeSession!['otp']?.toString() ?? 
+                      '...';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4A7FFF), Color(0xFF6B4CE6)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4A7FFF).withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'CURRENT ACTIVE SESSION',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  hall,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'OTP',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  otp,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

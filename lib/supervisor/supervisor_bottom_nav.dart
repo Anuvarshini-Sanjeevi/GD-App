@@ -36,8 +36,8 @@ class SupervisorBottomNav extends StatelessWidget {
                 index: 0,
               ),
               _buildNavItem(
-                icon: Icons.people_outline,
-                activeIcon: Icons.people,
+                icon: Icons.event_note_outlined,
+                activeIcon: Icons.event_note,
                 label: 'Sessions',
                 index: 1,
               ),
