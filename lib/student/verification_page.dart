@@ -69,76 +69,39 @@ class _VerificationPageState extends State<VerificationPage> with SingleTickerPr
     debugPrint('Verifying code: $code for session: ${widget.bookedSessionTitle}');
     
     try {
-      final tokens = await ApiService.getHallQrTokens(booking: 'booked');
-      debugPrint('Fetched ${tokens.length} tokens for verification');
-      
-      bool isValid = false;
-      final bool isBookedTechnical = widget.bookedSessionTitle?.toLowerCase().contains('technical') ?? false;
-      
-      for (var session in tokens) {
-        final Map<String, dynamic> sessionData = session is Map ? (session['session'] ?? session['session_config'] ?? session['sessionConfig'] ?? session) : {};
-        
-        final String token = (session['token'] ?? 
-                            sessionData['token'] ?? 
-                            session['qr_token'] ?? 
-                            sessionData['qr_token'] ?? 
-                            "").toString();
-                            
-        final String? apiOtp = session['current_otp']?.toString() ?? 
-                              sessionData['current_otp']?.toString() ??
-                              session['otp']?.toString() ??
-                              sessionData['otp']?.toString();
-        
-        final String sessionTopic = (sessionData['topic'] ?? sessionData['sessionName'] ?? "").toString().toLowerCase();
-        final bool isApiTechnical = sessionTopic.contains('technical');
-
-        debugPrint('Checking session: $sessionTopic. Token: $token, API OTP: $apiOtp');
-        
-        // Exact matching
-        if (code == token || code == apiOtp) {
-          isValid = true;
-          break;
-        }
-
-        // Technical Context Matching: If I booked a technical session, any technical OTP is valid
-        if (isBookedTechnical && isApiTechnical && code == apiOtp) {
-          debugPrint('Contextual Match: Technical Code $code accepted for booked technical session.');
-          isValid = true;
-          break;
-        }
-      }
+      // 1. First, call the backend to mark attendance
+      // This is the source of truth now
+      final result = await ApiService.scanToken(code);
+      debugPrint('Attendance marked successfully: $result');
 
       if (mounted) {
-        if (isValid) {
-          debugPrint('Verification successful!');
-          if (widget.onVerified != null) {
-            widget.onVerified!(code);
-          }
-          
-          if (Navigator.of(context).canPop()) {
-            Navigator.of(context).pop(true);
-          } else {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const TeamAllocationPage()),
-            );
-          }
+        debugPrint('Verification successful!');
+        if (widget.onVerified != null) {
+          widget.onVerified!(code);
+        }
+        
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop(true);
         } else {
-          debugPrint('Verification failed: Code $code does not match any active token/OTP');
-          setState(() => _isProcessing = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Invalid QR code or OTP. Please try again.'),
-              backgroundColor: Colors.red,
-            ),
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const TeamAllocationPage()),
           );
         }
       }
     } catch (e) {
       debugPrint('Verification error: $e');
+      
+      // Fallback: If backend fails, we can still try local verification 
+      // as a backup if the user wants to allow offline marking (optional)
+      // For now, let's treat backend failure as a failed attempt to be safe
+      
       if (mounted) {
         setState(() => _isProcessing = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Verification failed: $e')),
+          SnackBar(
+            content: Text(e is ApiException ? e.message : 'Verification failed: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

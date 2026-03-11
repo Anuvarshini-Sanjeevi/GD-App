@@ -34,7 +34,9 @@ class ApiService {
   static const String devTunnelUrl = 'https://d29qdzpk-8080.inc1.devtunnels.ms';
 
   static String get baseUrl {
-    return devTunnelUrl;
+    if (kIsWeb) return localUrl;
+    if (defaultTargetPlatform == TargetPlatform.android) return androidEmulatorUrl;
+    return localUrl;
   }
 
   static Future<List<SessionConfig>> getSessionConfigs() async {
@@ -258,6 +260,46 @@ class ApiService {
         }
       }
     } catch (e) {
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> scanToken(String code) async {
+    final url = '$baseUrl/api/hall-qr-tokens/scan';
+    debugPrint('API Request: POST $url with token: $code');
+    try {
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-Tunnel-Skip-AntiPhish': 'true',
+              if (_authToken != null) 'Authorization': 'Bearer $_authToken',
+            },
+            body: json.encode({'otp': code}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      debugPrint('API Response [scanToken]: ${response.statusCode}');
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return json.decode(response.body);
+      } else {
+        try {
+          final decoded = json.decode(response.body);
+          throw ApiException(
+            decoded['message'] ?? 
+            decoded['error'] ?? 
+            'Failed to mark attendance: ${response.statusCode}',
+            statusCode: response.statusCode,
+          );
+        } catch (_) {
+          throw ApiException('Failed to mark attendance: ${response.statusCode}', statusCode: response.statusCode);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error in scanToken: $e');
       rethrow;
     }
   }

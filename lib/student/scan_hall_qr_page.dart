@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:gdapp/student/team_allocation_page.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:gdapp/services/api_service.dart';
 
 class ScanHallQRPage extends StatefulWidget {
   const ScanHallQRPage({Key? key}) : super(key: key);
@@ -64,15 +65,26 @@ class _ScanHallQRPageState extends State<ScanHallQRPage>
           _isProcessing = true;
         });
 
-        // Simulate a slight delay for realistic processing
-        Future.delayed(const Duration(milliseconds: 800), () {
+        // Call backend to mark attendance
+        ApiService.scanToken(code).then((result) {
           if (mounted) {
             setState(() {
               _isScanning = false;
               _isProcessing = false;
             });
-            // Skip OTP input and show success dialog directly
             _showSuccessDialog();
+          }
+        }).catchError((e) {
+          if (mounted) {
+            setState(() {
+              _isProcessing = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e is ApiException ? e.message : 'Scan failed: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
         });
       }
@@ -121,8 +133,8 @@ class _ScanHallQRPageState extends State<ScanHallQRPage>
       _isProcessing = true;
     });
 
-    // Simulate OTP verification
-    Future.delayed(const Duration(seconds: 1), () {
+    // Call backend to mark attendance
+    ApiService.scanToken(otp).then((result) {
       if (mounted) {
         setState(() {
           _isProcessing = false;
@@ -130,6 +142,18 @@ class _ScanHallQRPageState extends State<ScanHallQRPage>
         
         // Show success dialog
         _showSuccessDialog();
+      }
+    }).catchError((e) {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e is ApiException ? e.message : 'Verification failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     });
   }
