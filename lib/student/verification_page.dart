@@ -10,6 +10,7 @@ class VerificationPage extends StatefulWidget {
   final Function(String)? onVerified;
   final bool showScannerFirst;
   final String? bookedSessionTitle;
+<<<<<<< HEAD
   final String? initialOtp;
   final String? activityType;
 
@@ -20,14 +21,26 @@ class VerificationPage extends StatefulWidget {
     this.bookedSessionTitle,
     this.initialOtp,
     this.activityType,
+=======
+  
+  const VerificationPage({
+    Key? key, 
+    this.onVerified,
+    this.showScannerFirst = true,
+    this.bookedSessionTitle,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   }) : super(key: key);
 
   @override
   State<VerificationPage> createState() => _VerificationPageState();
 }
+<<<<<<< HEAD
 
 class _VerificationPageState extends State<VerificationPage>
     with SingleTickerProviderStateMixin {
+=======
+class _VerificationPageState extends State<VerificationPage> with SingleTickerProviderStateMixin {
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   late bool _isScanning;
   String _otp = "";
   final MobileScannerController _scannerController = MobileScannerController();
@@ -39,7 +52,10 @@ class _VerificationPageState extends State<VerificationPage>
   void initState() {
     super.initState();
     _isScanning = widget.showScannerFirst;
+<<<<<<< HEAD
     _otp = '';
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     _scanAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -71,6 +87,7 @@ class _VerificationPageState extends State<VerificationPage>
     }
   }
 
+<<<<<<< HEAD
   void _handleVerified(String code, {bool isOtpEntry = false}) async {
     setState(() => _isProcessing = true);
     debugPrint(
@@ -85,6 +102,16 @@ class _VerificationPageState extends State<VerificationPage>
               activityType: widget.activityType)
           : await ApiService.verifyOtp(code,
               sessionTitle: widget.bookedSessionTitle);
+=======
+  void _handleVerified(String code) async {
+    setState(() => _isProcessing = true);
+    debugPrint('Verifying code: $code for session: ${widget.bookedSessionTitle}');
+    
+    try {
+      // 1. First, call the backend to mark attendance
+      // This is the source of truth now
+      final result = await ApiService.scanToken(code);
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       debugPrint('Attendance marked successfully: $result');
 
       if (mounted) {
@@ -92,6 +119,7 @@ class _VerificationPageState extends State<VerificationPage>
         if (widget.onVerified != null) {
           widget.onVerified!(code);
         }
+<<<<<<< HEAD
 
         if (mounted) {
           debugPrint('Verification successful!');
@@ -106,10 +134,20 @@ class _VerificationPageState extends State<VerificationPage>
               MaterialPageRoute(builder: (_) => const TeamAllocationPage()),
             );
           }
+=======
+        
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop(true);
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const TeamAllocationPage()),
+          );
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         }
       }
     } catch (e) {
       debugPrint('Verification error: $e');
+<<<<<<< HEAD
 
       // Fallback: If backend fails, we can still try local verification
       // as a backup if the user wants to allow offline marking (optional)
@@ -124,6 +162,18 @@ class _VerificationPageState extends State<VerificationPage>
           SnackBar(
             content:
                 Text(e is ApiException ? e.message : 'Verification failed: $e'),
+=======
+      
+      // Fallback: If backend fails, we can still try local verification 
+      // as a backup if the user wants to allow offline marking (optional)
+      // For now, let's treat backend failure as a failed attempt to be safe
+      
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e is ApiException ? e.message : 'Verification failed: $e'),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
             backgroundColor: Colors.red,
           ),
         );
@@ -154,6 +204,10 @@ class _VerificationPageState extends State<VerificationPage>
       body: Stack(
         children: [
           _isScanning ? _buildScannerView() : _buildOtpView(),
+<<<<<<< HEAD
+=======
+          
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           if (_isProcessing)
             Container(
               color: Colors.black54,
@@ -173,7 +227,11 @@ class _VerificationPageState extends State<VerificationPage>
           controller: _scannerController,
           onDetect: _onDetect,
         ),
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         // Darkened overlay with cutout
         ColorFiltered(
           colorFilter: ColorFilter.mode(
@@ -229,7 +287,11 @@ class _VerificationPageState extends State<VerificationPage>
                       _buildViewfinderCorner(Alignment.topRight),
                       _buildViewfinderCorner(Alignment.bottomLeft),
                       _buildViewfinderCorner(Alignment.bottomRight),
+<<<<<<< HEAD
 
+=======
+                      
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       // Animated Scan line
                       AnimatedBuilder(
                         animation: _scanAnimation,
@@ -244,8 +306,12 @@ class _VerificationPageState extends State<VerificationPage>
                                 color: const Color(0xFF2E63F2),
                                 boxShadow: [
                                   BoxShadow(
+<<<<<<< HEAD
                                     color: const Color(0xFF2E63F2)
                                         .withOpacity(0.5),
+=======
+                                    color: const Color(0xFF2E63F2).withOpacity(0.5),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                                     blurRadius: 8,
                                     spreadRadius: 2,
                                   ),
@@ -265,13 +331,21 @@ class _VerificationPageState extends State<VerificationPage>
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
               const SizedBox(height: 48),
+<<<<<<< HEAD
 
+=======
+              
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               // Use OTP Pill Button
               GestureDetector(
                 onTap: () => setState(() => _isScanning = false),
                 child: Container(
+<<<<<<< HEAD
                   padding:
                       const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+=======
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   decoration: BoxDecoration(
                     color: Colors.white12,
                     borderRadius: BorderRadius.circular(30),
@@ -303,6 +377,7 @@ class _VerificationPageState extends State<VerificationPage>
         height: 30,
         decoration: BoxDecoration(
           border: Border(
+<<<<<<< HEAD
             top: alignment.y < 0
                 ? const BorderSide(color: Colors.white, width: 4)
                 : BorderSide.none,
@@ -315,6 +390,12 @@ class _VerificationPageState extends State<VerificationPage>
             right: alignment.x > 0
                 ? const BorderSide(color: Colors.white, width: 4)
                 : BorderSide.none,
+=======
+            top: alignment.y < 0 ? const BorderSide(color: Colors.white, width: 4) : BorderSide.none,
+            bottom: alignment.y > 0 ? const BorderSide(color: Colors.white, width: 4) : BorderSide.none,
+            left: alignment.x < 0 ? const BorderSide(color: Colors.white, width: 4) : BorderSide.none,
+            right: alignment.x > 0 ? const BorderSide(color: Colors.white, width: 4) : BorderSide.none,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           ),
         ),
       ),
@@ -359,7 +440,11 @@ class _VerificationPageState extends State<VerificationPage>
             ),
           ),
         ),
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -384,7 +469,11 @@ class _VerificationPageState extends State<VerificationPage>
                   ),
                 ),
                 const SizedBox(height: 32),
+<<<<<<< HEAD
 
+=======
+                
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 // OTP Indicators & spacer wrapped to handle overflow
                 Expanded(
                   child: SingleChildScrollView(
@@ -400,9 +489,13 @@ class _VerificationPageState extends State<VerificationPage>
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
+<<<<<<< HEAD
                                   color: index < _otp.length
                                       ? const Color(0xFF2E63F2)
                                       : const Color(0xFFE5E7EB),
+=======
+                                  color: index < _otp.length ? const Color(0xFF2E63F2) : const Color(0xFFE5E7EB),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                                   width: 2,
                                 ),
                               ),
@@ -422,8 +515,12 @@ class _VerificationPageState extends State<VerificationPage>
                         const SizedBox(height: 24),
                         Text(
                           '${_otp.length}/6 digits entered',
+<<<<<<< HEAD
                           style: const TextStyle(
                               color: Color(0xFF9CA3AF), fontSize: 13),
+=======
+                          style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                         ),
                         const SizedBox(height: 8),
                         Container(
@@ -438,7 +535,11 @@ class _VerificationPageState extends State<VerificationPage>
                     ),
                   ),
                 ),
+<<<<<<< HEAD
 
+=======
+                
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 // Number Pad
                 _buildNumberPad(),
                 const SizedBox(height: 24),
@@ -469,6 +570,7 @@ class _VerificationPageState extends State<VerificationPage>
             ),
             _buildNumberButton(
               icon: Icons.arrow_forward,
+<<<<<<< HEAD
               color: _otp.length == 6
                   ? const Color(0xFF2E63F2)
                   : const Color(0xFFE5E7EB),
@@ -476,6 +578,13 @@ class _VerificationPageState extends State<VerificationPage>
               onPressed: () {
                 if (_otp.length == 6) {
                   _handleVerified(_otp, isOtpEntry: true);
+=======
+              color: _otp.length == 6 ? const Color(0xFF2E63F2) : const Color(0xFFE5E7EB),
+              iconColor: Colors.white,
+              onPressed: () {
+                if (_otp.length == 6) {
+                  _handleVerified(_otp);
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 }
               },
             ),
@@ -490,10 +599,14 @@ class _VerificationPageState extends State<VerificationPage>
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+<<<<<<< HEAD
         children: numbers
             .map((n) => _buildNumberButton(
                 text: n, onPressed: () => _onNumberPressed(n)))
             .toList(),
+=======
+        children: numbers.map((n) => _buildNumberButton(text: n, onPressed: () => _onNumberPressed(n))).toList(),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       ),
     );
   }

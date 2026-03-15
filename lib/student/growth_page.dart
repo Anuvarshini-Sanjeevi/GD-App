@@ -66,7 +66,11 @@ class _GrowthPageState extends State<GrowthPage> {
           style: TextStyle(
             color: Color(0xFF0D2146),
             fontWeight: FontWeight.bold,
+<<<<<<< HEAD
             fontSize: 20,
+=======
+            fontSize: 24,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           ),
         ),
         centerTitle: false,
@@ -104,6 +108,11 @@ class _GrowthPageState extends State<GrowthPage> {
                   _buildTab('Department'),
                   const SizedBox(width: 8),
                   _buildTab('Skill wise'),
+<<<<<<< HEAD
+=======
+                  const SizedBox(width: 8),
+                  _buildTab('Top 3'),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 ],
               ),
             ),
@@ -137,7 +146,11 @@ class _GrowthPageState extends State<GrowthPage> {
                           const Text(
                             'Top Performers',
                             style: TextStyle(
+<<<<<<< HEAD
                               fontSize: 16,
+=======
+                              fontSize: 18,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF0D2146),
                             ),
@@ -319,7 +332,11 @@ class _GrowthPageState extends State<GrowthPage> {
                     '$points pts',
                     style: const TextStyle(
                       color: Colors.white,
+<<<<<<< HEAD
                       fontSize: 11,
+=======
+                      fontSize: 10,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -400,7 +417,11 @@ class _GrowthPageState extends State<GrowthPage> {
                   name,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
+<<<<<<< HEAD
                     fontSize: 14,
+=======
+                    fontSize: 15,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     color: Color(0xFF0D2146),
                   ),
                 ),

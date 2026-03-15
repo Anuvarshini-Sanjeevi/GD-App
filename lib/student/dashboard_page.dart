@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'dart:async';
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 import 'package:gdapp/student/widgets/custom_navigation_bar.dart';
 import 'package:gdapp/student/growth_page.dart';
 import 'package:gdapp/student/activities_page.dart';
@@ -62,13 +65,17 @@ class _HomeContent extends StatefulWidget {
 class _HomeContentState extends State<_HomeContent> {
   late Future<List<StudentActivity>> _activitiesFuture;
   late Future<Map<String, dynamic>> _profileFuture;
+<<<<<<< HEAD
   Timer? _refreshTimer;
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
   @override
   void initState() {
     super.initState();
     _activitiesFuture = ApiService.getStudentActivities();
     _profileFuture = ApiService.getUserProfile();
+<<<<<<< HEAD
     _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       if (mounted) setState(() {});
     });
@@ -78,25 +85,39 @@ class _HomeContentState extends State<_HomeContent> {
   void dispose() {
     _refreshTimer?.cancel();
     super.dispose();
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
+<<<<<<< HEAD
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+=======
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildProfileHeader(context),
+<<<<<<< HEAD
           const SizedBox(height: 20),
+=======
+          const SizedBox(height: 32),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 'Your Performance',
                 style: TextStyle(
+<<<<<<< HEAD
                   fontSize: 16,
+=======
+                  fontSize: 20,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1A1C1E),
                 ),
@@ -104,6 +125,7 @@ class _HomeContentState extends State<_HomeContent> {
             ],
           ),
           const SizedBox(height: 16),
+<<<<<<< HEAD
           FutureBuilder<List<StudentActivity>>(
             future: _activitiesFuture,
             builder: (context, snapshot) {
@@ -118,13 +140,21 @@ class _HomeContentState extends State<_HomeContent> {
             },
           ),
           const SizedBox(height: 24),
+=======
+          _buildStatusGrid(),
+          const SizedBox(height: 32),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
                 'Join Window',
                 style: TextStyle(
+<<<<<<< HEAD
                   fontSize: 16,
+=======
+                  fontSize: 20,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1A1C1E),
                 ),
@@ -133,8 +163,12 @@ class _HomeContentState extends State<_HomeContent> {
                 onPressed: () {
                   Navigator.push(
                     context,
+<<<<<<< HEAD
                     MaterialPageRoute(
                         builder: (context) => const UpcomingSessionsPage()),
+=======
+                    MaterialPageRoute(builder: (context) => const UpcomingSessionsPage()),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   );
                 },
                 child: const Text(
@@ -142,7 +176,10 @@ class _HomeContentState extends State<_HomeContent> {
                   style: TextStyle(
                     color: Color(0xFF2E63F2),
                     fontWeight: FontWeight.w600,
+<<<<<<< HEAD
                     fontSize: 13,
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   ),
                 ),
               ),
@@ -150,11 +187,19 @@ class _HomeContentState extends State<_HomeContent> {
           ),
           const SizedBox(height: 16),
           _buildJoinWindowSection(),
+<<<<<<< HEAD
           const SizedBox(height: 24),
           const Text(
             'Recent Updates',
             style: TextStyle(
               fontSize: 16,
+=======
+          const SizedBox(height: 32),
+          const Text(
+            'Recent Updates',
+            style: TextStyle(
+              fontSize: 20,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               fontWeight: FontWeight.bold,
               color: Color(0xFF1A1C1E),
             ),
@@ -205,7 +250,11 @@ class _HomeContentState extends State<_HomeContent> {
                 Text(
                   name,
                   style: const TextStyle(
+<<<<<<< HEAD
                     fontSize: 16,
+=======
+                    fontSize: 18,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1A1C1E),
                     letterSpacing: -0.5,
@@ -232,9 +281,13 @@ class _HomeContentState extends State<_HomeContent> {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(100),
+<<<<<<< HEAD
         border: bgColor == Colors.white
             ? Border.all(color: Colors.grey[200]!)
             : null,
+=======
+        border: bgColor == Colors.white ? Border.all(color: Colors.grey[200]!) : null,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -255,6 +308,7 @@ class _HomeContentState extends State<_HomeContent> {
   }
 
   Widget _buildJoinWindowSection() {
+<<<<<<< HEAD
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: ApiService.getBookedSlots(),
       builder: (context, snapshot) {
@@ -268,6 +322,22 @@ class _HomeContentState extends State<_HomeContent> {
 
         if (activeSlots.isNotEmpty) {
           return _buildDetailedJoinCard(activeSlots.first);
+=======
+    return FutureBuilder<List<StudentActivity>>(
+      future: _activitiesFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        
+        // Use the first activity as the "active" one for the join window
+        final activeActivity = snapshot.hasData && snapshot.data!.isNotEmpty 
+            ? snapshot.data!.first 
+            : null;
+
+        if (activeActivity != null) {
+          return _buildDetailedJoinCard(activeActivity);
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         }
 
         return Container(
@@ -280,10 +350,17 @@ class _HomeContentState extends State<_HomeContent> {
           ),
           child: const Center(
             child: Text(
+<<<<<<< HEAD
               'No active session found',
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 14,
+=======
+              'No active sessions found',
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 16,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -293,7 +370,13 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
+<<<<<<< HEAD
   Widget _buildDetailedJoinCard(Map<String, dynamic> slot) {
+=======
+  Widget _buildDetailedJoinCard(StudentActivity? activity) {
+    if (activity == null) return const SizedBox.shrink();
+
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -316,8 +399,12 @@ class _HomeContentState extends State<_HomeContent> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
+<<<<<<< HEAD
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+=======
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   decoration: BoxDecoration(
                     color: const Color(0xFF2E63F2).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(30),
@@ -332,14 +419,22 @@ class _HomeContentState extends State<_HomeContent> {
                         style: TextStyle(
                           color: Color(0xFF2E63F2),
                           fontWeight: FontWeight.bold,
+<<<<<<< HEAD
                           fontSize: 11,
+=======
+                          fontSize: 14,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                         ),
                       ),
                     ],
                   ),
                 ),
                 Text(
+<<<<<<< HEAD
                   slot['hall'] ?? '',
+=======
+                  activity.category,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   style: const TextStyle(
                     color: Color(0xFF2E63F2),
                     fontWeight: FontWeight.bold,
@@ -350,18 +445,30 @@ class _HomeContentState extends State<_HomeContent> {
             ),
             const SizedBox(height: 16),
             Text(
+<<<<<<< HEAD
               slot['title'] ?? '',
               style: const TextStyle(
                 fontSize: 20,
+=======
+              activity.title,
+              style: const TextStyle(
+                fontSize: 28,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF1A1C1E),
               ),
             ),
             const SizedBox(height: 4),
             Text(
+<<<<<<< HEAD
               slot['time'] ?? '',
               style: const TextStyle(
                 fontSize: 13,
+=======
+              activity.subtitle,
+              style: const TextStyle(
+                fontSize: 15,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 color: Color(0xFF4B5563),
                 fontWeight: FontWeight.w500,
               ),
@@ -376,8 +483,12 @@ class _HomeContentState extends State<_HomeContent> {
                       backgroundColor: const Color(0xFF2E63F2),
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
+<<<<<<< HEAD
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
+=======
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       elevation: 0,
                     ),
                     child: Row(
@@ -387,8 +498,12 @@ class _HomeContentState extends State<_HomeContent> {
                         SizedBox(width: 10),
                         Text(
                           'Scan QR',
+<<<<<<< HEAD
                           style: TextStyle(
                               fontSize: 13, fontWeight: FontWeight.bold),
+=======
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                         ),
                       ],
                     ),
@@ -401,21 +516,33 @@ class _HomeContentState extends State<_HomeContent> {
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       side: const BorderSide(color: Color(0xFF2E63F2)),
+<<<<<<< HEAD
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
+=======
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [
+<<<<<<< HEAD
                         Icon(Icons.keyboard_alt_outlined,
                             color: Color(0xFF2E63F2), size: 20),
+=======
+                        Icon(Icons.keyboard_alt_outlined, color: Color(0xFF2E63F2), size: 20),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                         SizedBox(width: 10),
                         Text(
                           'Enter OTP',
                           style: TextStyle(
                             color: Color(0xFF2E63F2),
                             fontWeight: FontWeight.bold,
+<<<<<<< HEAD
                             fontSize: 13,
+=======
+                            fontSize: 15,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                           ),
                         ),
                       ],
@@ -454,8 +581,12 @@ class _HomeContentState extends State<_HomeContent> {
                 ),
               ],
             ),
+<<<<<<< HEAD
             child: const Icon(Icons.access_time_filled_rounded,
                 color: Color(0xFF2E63F2), size: 28),
+=======
+            child: const Icon(Icons.access_time_filled_rounded, color: Color(0xFF2E63F2), size: 28),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -465,7 +596,11 @@ class _HomeContentState extends State<_HomeContent> {
                 Text(
                   'Join window open',
                   style: TextStyle(
+<<<<<<< HEAD
                     fontSize: 16,
+=======
+                    fontSize: 18,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1A1C1E),
                   ),
@@ -474,7 +609,11 @@ class _HomeContentState extends State<_HomeContent> {
                 Text(
                   '02:14 left to scan QR or use OTP and join your table.',
                   style: TextStyle(
+<<<<<<< HEAD
                     fontSize: 13,
+=======
+                    fontSize: 14,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     color: Color(0xFF4B5563),
                     height: 1.4,
                   ),
@@ -487,6 +626,7 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
+<<<<<<< HEAD
   Widget _buildStatusGrid(List<StudentActivity> activities) {
     // Calculate total completed levels and total possible levels across all activity types
     int totalCompleted = 0;
@@ -497,6 +637,9 @@ class _HomeContentState extends State<_HomeContent> {
       totalPossible += activity.levels;
     }
 
+=======
+  Widget _buildStatusGrid() {
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
@@ -507,15 +650,40 @@ class _HomeContentState extends State<_HomeContent> {
       children: [
         _buildGridItem(
           'Level Rank',
+<<<<<<< HEAD
           '$totalCompleted / $totalPossible',
+=======
+          '12 / 86',
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           'Current level',
           icon: Icons.emoji_events_outlined,
           iconColor: Colors.orange,
         ),
         _buildGridItem(
+<<<<<<< HEAD
           'Last Result',
           'Rank 2',
           'OverAll Ranking',
+=======
+          'Last Score',
+          '0.73',
+          'Promoted',
+          icon: Icons.track_changes_rounded,
+          iconColor: Colors.teal,
+          isPromoted: true,
+        ),
+        _buildGridItem(
+          'Next Goal',
+          'Level 3',
+          '2 sessions left',
+          icon: Icons.outlined_flag_rounded,
+          iconColor: Colors.blue,
+        ),
+        _buildGridItem(
+          'Last Result',
+          'Rank 2',
+          'Out of 8 in table',
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           icon: Icons.bar_chart_rounded,
           iconColor: Colors.deepPurple,
         ),
@@ -573,7 +741,11 @@ class _HomeContentState extends State<_HomeContent> {
             value,
             style: const TextStyle(
               color: Colors.white,
+<<<<<<< HEAD
               fontSize: 18,
+=======
+              fontSize: 24,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               fontWeight: FontWeight.w900,
             ),
           ),
@@ -586,10 +758,15 @@ class _HomeContentState extends State<_HomeContent> {
               Text(
                 subtext,
                 style: TextStyle(
+<<<<<<< HEAD
                   color: isPromoted
                       ? const Color(0xFF4ADE80)
                       : Colors.white.withOpacity(0.6),
                   fontSize: 11,
+=======
+                  color: isPromoted ? const Color(0xFF4ADE80) : Colors.white.withOpacity(0.6),
+                  fontSize: 12,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -625,8 +802,12 @@ class _HomeContentState extends State<_HomeContent> {
               color: const Color(0xFFE5EDFF),
               borderRadius: BorderRadius.circular(100),
             ),
+<<<<<<< HEAD
             child: const Icon(Icons.notifications_none_rounded,
                 color: Color(0xFF2E63F2), size: 24),
+=======
+            child: const Icon(Icons.notifications_none_rounded, color: Color(0xFF2E63F2), size: 24),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -636,7 +817,11 @@ class _HomeContentState extends State<_HomeContent> {
                 Text(
                   'Today\'s Summary',
                   style: TextStyle(
+<<<<<<< HEAD
                     fontSize: 14,
+=======
+                    fontSize: 16,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1A1C1E),
                   ),
@@ -645,7 +830,11 @@ class _HomeContentState extends State<_HomeContent> {
                 Text(
                   'Session not started yet. Join early to secure your table and rank.',
                   style: TextStyle(
+<<<<<<< HEAD
                     fontSize: 13,
+=======
+                    fontSize: 14,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     color: Color(0xFFBCC1CD),
                     height: 1.5,
                   ),

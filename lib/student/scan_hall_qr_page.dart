@@ -66,7 +66,11 @@ class _ScanHallQRPageState extends State<ScanHallQRPage>
         });
 
         // Call backend to mark attendance
+<<<<<<< HEAD
         ApiService.verifyOtp(code).then((result) {
+=======
+        ApiService.scanToken(code).then((result) {
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           if (mounted) {
             setState(() {
               _isScanning = false;
@@ -134,7 +138,11 @@ class _ScanHallQRPageState extends State<ScanHallQRPage>
     });
 
     // Call backend to mark attendance
+<<<<<<< HEAD
     ApiService.verifyOtp(otp).then((result) {
+=======
+    ApiService.scanToken(otp).then((result) {
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       if (mounted) {
         setState(() {
           _isProcessing = false;

@@ -69,7 +69,11 @@ class _SessionsPageState extends State<SessionsPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
+<<<<<<< HEAD
         child: _isLoading
+=======
+        child: _isLoading 
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
                 onRefresh: _fetchSessions,
@@ -82,6 +86,7 @@ class _SessionsPageState extends State<SessionsPage> {
                       children: [
                         // Header
                         _buildHeader(),
+<<<<<<< HEAD
 
                         const SizedBox(height: 24),
 
@@ -98,6 +103,24 @@ class _SessionsPageState extends State<SessionsPage> {
                         // Ongoing Section
                         _buildOngoingSection(),
 
+=======
+                        
+                        const SizedBox(height: 24),
+                        
+                        // Search Bar
+                        _buildSearchBar(),
+                        
+                        const SizedBox(height: 20),
+                        
+                        // Stats Cards
+                        _buildStatsRow(),
+                        
+                        const SizedBox(height: 28),
+                        
+                        // Ongoing Section
+                        _buildOngoingSection(),
+                        
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                         const SizedBox(height: 80), // Space for bottom nav
                       ],
                     ),
@@ -180,8 +203,12 @@ class _SessionsPageState extends State<SessionsPage> {
                   decoration: BoxDecoration(
                     color: Colors.red,
                     shape: BoxShape.circle,
+<<<<<<< HEAD
                     border:
                         Border.all(color: const Color(0xFFF5F7FA), width: 2),
+=======
+                    border: Border.all(color: const Color(0xFFF5F7FA), width: 2),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   ),
                 ),
               ),
@@ -211,19 +238,27 @@ class _SessionsPageState extends State<SessionsPage> {
           hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
           prefixIcon: const Icon(Icons.search, color: Color(0xFF4A7FFF)),
           border: InputBorder.none,
+<<<<<<< HEAD
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+=======
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         ),
       ),
     );
   }
 
   Widget _buildStatsRow() {
+<<<<<<< HEAD
     int activeCount = _sessions
         .where((s) =>
             s['is_active'] == true ||
             s['status']?.toString().toUpperCase() == 'ACTIVE')
         .length;
+=======
+    int activeCount = _sessions.where((s) => s['is_active'] == true || s['status']?.toString().toUpperCase() == 'ACTIVE').length;
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     int totalCount = _sessions.length;
     int pendingCount = totalCount - activeCount;
 
@@ -282,7 +317,11 @@ class _SessionsPageState extends State<SessionsPage> {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
+<<<<<<< HEAD
               color: isActive
+=======
+              color: isActive 
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   ? const Color(0xFF4A7FFF).withOpacity(0.3)
                   : Colors.black.withOpacity(0.04),
               blurRadius: 10,
@@ -313,9 +352,13 @@ class _SessionsPageState extends State<SessionsPage> {
                   label,
                   style: TextStyle(
                     fontSize: 12,
+<<<<<<< HEAD
                     color: isActive
                         ? Colors.white.withOpacity(0.9)
                         : Colors.grey[600],
+=======
+                    color: isActive ? Colors.white.withOpacity(0.9) : Colors.grey[600],
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -330,6 +373,7 @@ class _SessionsPageState extends State<SessionsPage> {
   Widget _buildOngoingSection() {
     List<dynamic> filteredSessions = _sessions;
     if (_selectedFilter == 'Active') {
+<<<<<<< HEAD
       filteredSessions = _sessions
           .where((s) =>
               s['is_active'] == true ||
@@ -341,6 +385,11 @@ class _SessionsPageState extends State<SessionsPage> {
               s['is_active'] != true &&
               s['status']?.toString().toUpperCase() != 'ACTIVE')
           .toList();
+=======
+      filteredSessions = _sessions.where((s) => s['is_active'] == true || s['status']?.toString().toUpperCase() == 'ACTIVE').toList();
+    } else if (_selectedFilter == 'Pending') {
+      filteredSessions = _sessions.where((s) => s['is_active'] != true && s['status']?.toString().toUpperCase() != 'ACTIVE').toList();
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     }
 
     return Column(
@@ -381,9 +430,13 @@ class _SessionsPageState extends State<SessionsPage> {
             ),
           )
         else
+<<<<<<< HEAD
           ...filteredSessions
               .map((session) => _buildSessionCard(session))
               .toList(),
+=======
+          ...filteredSessions.map((session) => _buildSessionCard(session)).toList(),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       ],
     );
   }
@@ -399,6 +452,7 @@ class _SessionsPageState extends State<SessionsPage> {
 
   Widget _buildSessionCard(dynamic session) {
     // Handle nested session data (common in hall-qr-tokens API)
+<<<<<<< HEAD
     final Map<String, dynamic> sessionData = session is Map
         ? (session['session'] ??
             session['session_config'] ??
@@ -454,6 +508,57 @@ class _SessionsPageState extends State<SessionsPage> {
 
     final String displayOtp = apiOtp ?? OTPUtils.generateOTP(token);
 
+=======
+    final Map<String, dynamic> sessionData = session is Map ? (session['session'] ?? session['session_config'] ?? session['sessionConfig'] ?? session) : {};
+    
+    final bool statusIsActive = (sessionData['status']?.toString().toUpperCase() == 'ACTIVE') || 
+                               (sessionData['is_active'] == true) ||
+                               (session['status']?.toString().toUpperCase() == 'ACTIVE') ||
+                               (session['is_active'] == true);
+    final bool isActive = statusIsActive;
+    
+    final String title = sessionData['topic'] ?? 
+                        sessionData['session_name'] ?? 
+                        sessionData['sessionName'] ?? 
+                        sessionData['name'] ?? 
+                        sessionData['title'] ?? 
+                        sessionData['session_id']?.toString() ??
+                        'Unnamed Session';
+                        
+    final String hall = sessionData['hall'] ?? 
+                       sessionData['hall_name'] ?? 
+                       sessionData['hallName'] ?? 
+                       sessionData['location'] ?? 
+                       sessionData['room'] ?? 
+                       sessionData['venue'] ??
+                       'Unknown Hall';
+                       
+    final String date = sessionData['date'] ?? 
+                       sessionData['session_date'] ?? 
+                       sessionData['sessionDate'] ?? 
+                       '';
+                       
+    final String time = sessionData['time'] ?? 
+                       sessionData['start_time'] ?? 
+                       sessionData['startTime'] ?? 
+                       '';
+    
+    final String token = session['token'] ?? 
+                        sessionData['token'] ?? 
+                        session['qr_token'] ?? 
+                        sessionData['qr_token'] ?? 
+                        session['hall_qr_token'] ?? 
+                        sessionData['hall_qr_token'] ?? 
+                        'Loading...';
+    
+    final String? apiOtp = session['current_otp']?.toString() ?? 
+                          sessionData['current_otp']?.toString() ??
+                          session['otp']?.toString() ??
+                          sessionData['otp']?.toString();
+    
+    final String displayOtp = apiOtp ?? OTPUtils.generateOTP(token);
+    
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
@@ -461,9 +566,13 @@ class _SessionsPageState extends State<SessionsPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
+<<<<<<< HEAD
           color: isActive
               ? const Color(0xFF4A7FFF).withOpacity(0.2)
               : Colors.grey.withOpacity(0.1),
+=======
+          color: isActive ? const Color(0xFF4A7FFF).withOpacity(0.2) : Colors.grey.withOpacity(0.1),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           width: 2,
         ),
         boxShadow: [
@@ -485,8 +594,12 @@ class _SessionsPageState extends State<SessionsPage> {
                   color: const Color(0xFF4A7FFF).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
+<<<<<<< HEAD
                 child: const Icon(Icons.location_on,
                     size: 16, color: Color(0xFF4A7FFF)),
+=======
+                child: const Icon(Icons.location_on, size: 16, color: Color(0xFF4A7FFF)),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               ),
               const SizedBox(width: 10),
               Column(
@@ -495,7 +608,11 @@ class _SessionsPageState extends State<SessionsPage> {
                   Text(
                     hall,
                     style: const TextStyle(
+<<<<<<< HEAD
                       fontSize: 14,
+=======
+                      fontSize: 14, 
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
@@ -508,12 +625,18 @@ class _SessionsPageState extends State<SessionsPage> {
               ),
               const Spacer(),
               Container(
+<<<<<<< HEAD
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: isActive
                       ? const Color(0xFF00D9A5).withOpacity(0.15)
                       : Colors.grey.withOpacity(0.1),
+=======
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isActive ? const Color(0xFF00D9A5).withOpacity(0.15) : Colors.grey.withOpacity(0.1),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -529,7 +652,11 @@ class _SessionsPageState extends State<SessionsPage> {
           ),
           const SizedBox(height: 20),
           Text(
+<<<<<<< HEAD
             token, // Swap: Show token (e.g. Technical) here
+=======
+            title,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -538,6 +665,7 @@ class _SessionsPageState extends State<SessionsPage> {
             ),
           ),
           if (date.isNotEmpty || time.isNotEmpty) ...[
+<<<<<<< HEAD
             const SizedBox(height: 6),
             Row(
               children: [
@@ -552,6 +680,21 @@ class _SessionsPageState extends State<SessionsPage> {
             ),
           ],
 
+=======
+             const SizedBox(height: 6),
+             Row(
+               children: [
+                 Icon(Icons.calendar_today_outlined, size: 12, color: Colors.grey[500]),
+                 const SizedBox(width: 4),
+                 Text(
+                    '${date.split('T')[0]} • $time',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                 ),
+               ],
+             ),
+          ],
+          
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           const SizedBox(height: 20),
           // Stylized Token & OTP Display
           Container(
@@ -579,7 +722,11 @@ class _SessionsPageState extends State<SessionsPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
+<<<<<<< HEAD
                           title, // Swap: Show original title here
+=======
+                          token,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -637,8 +784,12 @@ class _SessionsPageState extends State<SessionsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
+<<<<<<< HEAD
                         builder: (context) =>
                             TableMonitorPage(session: session),
+=======
+                        builder: (context) => TableMonitorPage(session: session),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       ),
                     );
                   },
@@ -652,11 +803,34 @@ class _SessionsPageState extends State<SessionsPage> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   child: const Text(
+<<<<<<< HEAD
                     'Monitor Tables',
+=======
+                    'Monitor Tables', 
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                 ),
               ),
+<<<<<<< HEAD
+=======
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: () => _showQrSheet(session),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F7FA),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.qr_code_scanner,
+                    color: Colors.black,
+                    size: 24,
+                  ),
+                ),
+              ),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
             ],
           ),
         ],

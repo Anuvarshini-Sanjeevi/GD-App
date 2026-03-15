@@ -17,6 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
 
+<<<<<<< HEAD
   String _normalizeRole(String? rawRole) {
     if (rawRole == null) return '';
     final value = rawRole.trim().toUpperCase();
@@ -25,6 +26,8 @@ class _LoginPageState extends State<LoginPage> {
     return value;
   }
 
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   Future<void> _handleSignIn() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
@@ -39,6 +42,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
     try {
       final response = await ApiService.login(username, password);
+<<<<<<< HEAD
 
       final token = response['token']?.toString();
       final userRole = response['role']?.toString();
@@ -59,10 +63,44 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         debugPrint(
             'Warning: Login successful but no token found in response keys: ${response.keys.toList()}');
+=======
+      
+      // Extract token from response (handle standard formats)
+      debugPrint('Login Response Keys: ${response.keys.toList()}');
+      final token = response['token'] ?? response['accessToken'] ?? response['data']?['token'];
+      
+      // Extract user role from response (handle various formats)
+      String? userRole;
+      if (response['role'] != null) {
+        userRole = response['role'].toString();
+      } else if (response['user']?['role'] != null) {
+        userRole = response['user']['role'].toString();
+      } else if (response['data']?['role'] != null) {
+        userRole = response['data']['role'].toString();
+      } else if (response['data']?['user']?['role'] != null) {
+        userRole = response['data']['user']['role'].toString();
+      }
+      
+      debugPrint('Extracted role: $userRole');
+      
+      // Validate that the user has a supported role
+      if (userRole == null) {
+        throw Exception('Unable to determine user role. Please contact support.');
+      }
+      
+      final roleUpper = userRole.toUpperCase();
+      
+      if (token != null) {
+        debugPrint('Token extracted successfully');
+        ApiService.authToken = token.toString();
+      } else {
+        debugPrint('Warning: Login successful but no token found in response');
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       }
 
       if (mounted) {
         Widget destination;
+<<<<<<< HEAD
         if (normalizedRole == 'SUPERVISOR') {
           destination = const SupervisorShell();
         } else if (normalizedRole == 'STUDENT') {
@@ -72,6 +110,16 @@ class _LoginPageState extends State<LoginPage> {
               'Your role ($userRole) is not supported in this app.');
         }
 
+=======
+        if (roleUpper == 'SUPERVISOR') {
+          destination = const SupervisorShell();
+        } else if (roleUpper == 'STUDENT') {
+          destination = const DashboardPage();
+        } else {
+          throw Exception('Your role ($userRole) is not supported in this app.');
+        }
+        
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => destination),
         );
@@ -113,8 +161,14 @@ class _LoginPageState extends State<LoginPage> {
                     builder: (context) => AlertDialog(
                       title: const Text("Configuration Required"),
                       content: const Text(
+<<<<<<< HEAD
                           "Google Sign-In requires Firebase configuration files (google-services.json for Android, GoogleService-Info.plist for iOS).\n\n"
                           "Please follow the implementation walkthrough for setup instructions."),
+=======
+                        "Google Sign-In requires Firebase configuration files (google-services.json for Android, GoogleService-Info.plist for iOS).\n\n"
+                        "Please follow the implementation walkthrough for setup instructions."
+                      ),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
@@ -229,7 +283,10 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 8),
                         TextField(
                           controller: _usernameController,
+<<<<<<< HEAD
                           enabled: !_isLoading,
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                           decoration: InputDecoration(
                             hintText: 'Enter username',
                             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -254,7 +311,10 @@ class _LoginPageState extends State<LoginPage> {
                         TextField(
                           controller: _passwordController,
                           obscureText: true,
+<<<<<<< HEAD
                           enabled: !_isLoading,
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                           decoration: InputDecoration(
                             hintText: 'Enter your password',
                             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -281,9 +341,14 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               elevation: 0,
                             ),
+<<<<<<< HEAD
                             child: _isLoading
                                 ? const CircularProgressIndicator(
                                     color: Colors.white)
+=======
+                            child: _isLoading && _usernameController.text.isNotEmpty
+                                ? const CircularProgressIndicator(color: Colors.white)
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                                 : const Text(
                                     'Sign In',
                                     style: TextStyle(
@@ -299,8 +364,12 @@ class _LoginPageState extends State<LoginPage> {
                           children: [
                             Expanded(child: Divider(color: Colors.grey[300])),
                             Padding(
+<<<<<<< HEAD
                               padding:
                                   const EdgeInsets.symmetric(horizontal: 16),
+=======
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                               child: Text(
                                 'Or sign in with',
                                 style: TextStyle(

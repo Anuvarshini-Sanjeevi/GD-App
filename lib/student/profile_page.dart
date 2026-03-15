@@ -29,12 +29,15 @@ class _ProfilePageState extends State<ProfilePage> {
         _error = null;
       });
       final profile = await ApiService.getUserProfile();
+<<<<<<< HEAD
       debugPrint('PROFILE DATA: $profile');
       if (profile.containsKey('user')) {
         debugPrint('USER OBJECT KEYS: ${profile['user'].keys.toList()}');
       } else {
         debugPrint('PROFILE OBJECT KEYS: ${profile.keys.toList()}');
       }
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       if (mounted) {
         setState(() {
           _profile = profile;
@@ -79,6 +82,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     final user = _profile?['user'] ?? _profile;
+<<<<<<< HEAD
     
     // Detailed extraction with every possible variation
     final name = user?['name']?.toString() ?? 
@@ -143,6 +147,20 @@ class _ProfilePageState extends State<ProfilePage> {
                  user?['rank_position']?.toString() ?? 
                  user?['rankPosition']?.toString() ?? 
                  '-';
+=======
+    final name = user?['name']?.toString() ?? user?['full_name']?.toString() ?? 'Student';
+    final role = user?['role']?.toString() ?? 'Scholar';
+    final level = user?['level']?.toString() ?? user?['current_level']?.toString() ?? '-';
+    final batch = user?['batch']?.toString() ?? user?['year']?.toString() ?? '-';
+    final department = user?['department']?.toString() ?? user?['dept']?.toString() ?? 'Not Assigned';
+    final rollNumber = user?['rollNumber']?.toString() ?? user?['roll_number']?.toString() ?? user?['username']?.toString() ?? '-';
+    final email = user?['email']?.toString() ?? 'No Email';
+    final phone = user?['phone']?.toString() ?? user?['phone_number']?.toString() ?? user?['phoneNumber']?.toString() ?? 'No Phone';
+    final campus = user?['campus']?.toString() ?? user?['location']?.toString() ?? 'Not Specified';
+    final experience = user?['experience']?.toString() ?? user?['exp']?.toString() ?? user?['xp']?.toString() ?? '0';
+    final rank = user?['rank']?.toString() ?? user?['position']?.toString() ?? '-';
+
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: AppBar(
@@ -151,7 +169,11 @@ class _ProfilePageState extends State<ProfilePage> {
           style: TextStyle(
             color: Color(0xFF0D2146),
             fontWeight: FontWeight.bold,
+<<<<<<< HEAD
             fontSize: 20,
+=======
+            fontSize: 24,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           ),
         ),
         centerTitle: true,
@@ -207,7 +229,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
+<<<<<<< HEAD
                   fontSize: 20,
+=======
+                  fontSize: 26,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0D2146),
                 ),
@@ -223,7 +249,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   '$level • Batch $batch',
                   style: const TextStyle(
                     color: Colors.grey,
+<<<<<<< HEAD
                     fontSize: 11,
+=======
+                    fontSize: 12,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -249,6 +279,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         Expanded(child: _buildInfoCard('Rank', '#$rank', isIcon: true, icon: Icons.emoji_events_outlined, iconColor: Colors.orange)),
                       ],
                     ),
+<<<<<<< HEAD
+=======
+                    const SizedBox(height: 12),
+                    _buildInfoCard('Experience', '$experience XP', isIcon: true, icon: Icons.bolt, iconColor: Colors.blue),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   ],
                 ),
               ),
@@ -269,6 +304,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     const Divider(height: 24),
                     _buildDetailRow(Icons.phone_outlined, 'Phone', phone),
                     const Divider(height: 24),
+<<<<<<< HEAD
+=======
+                    _buildDetailRow(Icons.location_on_outlined, 'Campus', campus),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   ],
                 ),
               ),
@@ -306,7 +345,11 @@ class _ProfilePageState extends State<ProfilePage> {
                           'Log Out',
                           style: TextStyle(
                             color: Colors.white,
+<<<<<<< HEAD
                             fontSize: 14,
+=======
+                            fontSize: 16,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -315,6 +358,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
+<<<<<<< HEAD
               const SizedBox(height: 12),
               // Debug helper (tap to reveal keys)
               GestureDetector(
@@ -337,6 +381,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   style: TextStyle(color: Colors.grey.withOpacity(0.3), fontSize: 10),
                 ),
               ),
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               const SizedBox(height: 30),
             ],
           ),
@@ -353,7 +399,11 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Text(
           title,
           style: const TextStyle(
+<<<<<<< HEAD
             fontSize: 15,
+=======
+            fontSize: 16,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
             fontWeight: FontWeight.bold,
             color: Color(0xFF0D2146),
           ),
@@ -380,7 +430,11 @@ class _ProfilePageState extends State<ProfilePage> {
             Text(
               value,
               style: const TextStyle(
+<<<<<<< HEAD
                 fontSize: 13,
+=======
+                fontSize: 14,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 fontWeight: FontWeight.w500,
                 color: Color(0xFF0D2146),
               ),
@@ -422,7 +476,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Text(
                   value,
                   style: const TextStyle(
+<<<<<<< HEAD
                     fontSize: 13,
+=======
+                    fontSize: 14,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF0D2146),
                   ),

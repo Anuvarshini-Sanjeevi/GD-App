@@ -53,7 +53,11 @@ class _ReportsPageState extends State<ReportsPage> {
                         const Text(
                           'Reports',
                           style: TextStyle(
+<<<<<<< HEAD
                             fontSize: 22,
+=======
+                            fontSize: 28,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                           ),
@@ -149,11 +153,19 @@ class _ReportsPageState extends State<ReportsPage> {
           const SizedBox(height: 20),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
+<<<<<<< HEAD
             children: [
               const Text(
                 '92%',
                 style: TextStyle(
                   fontSize: 22,
+=======
+            children: const [
+              Text(
+                '92%',
+                style: TextStyle(
+                  fontSize: 48,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   height: 1,
@@ -173,6 +185,70 @@ class _ReportsPageState extends State<ReportsPage> {
               ),
             ],
           ),
+<<<<<<< HEAD
+=======
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Avg Score',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      '4.8',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      '/ 5.0',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white60,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Top Tier',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      '10%',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         ],
       ),
     );
@@ -332,7 +408,11 @@ class _ReportsPageState extends State<ReportsPage> {
           Text(
             count,
             style: TextStyle(
+<<<<<<< HEAD
               fontSize: 22,
+=======
+              fontSize: 32,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               fontWeight: FontWeight.bold,
               color: color,
             ),

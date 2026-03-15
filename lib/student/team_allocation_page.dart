@@ -16,6 +16,7 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
   Timer? _timer;
   int _secondsRemaining = 300; // 5 minute running time
   bool _isAuthenticated = false;
+<<<<<<< HEAD
   bool _isLoading = true;
   int _scannedCount = 0;
   final int _totalMembers = 10;
@@ -35,6 +36,13 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
     if (type.contains('DEBATE')) return 'DEBATE_CLUB';
     return 'GROUP_DISCUSSION';
   }
+=======
+  int _scannedCount = 6;
+  final int _totalMembers = 10;
+  bool _isLoading = true;
+  Map<String, dynamic>? _userProfile;
+  Map<String, dynamic>? _activeSession;
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
   @override
   void initState() {
@@ -115,6 +123,7 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
     super.dispose();
   }
 
+<<<<<<< HEAD
   Future<void> _refreshAttendees() async {
     try {
       final type = _currentActivityType;
@@ -154,6 +163,8 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
     }
   }
 
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   void _startTimer() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -161,11 +172,14 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
         setState(() {
           _secondsRemaining--;
         });
+<<<<<<< HEAD
         
         // Refresh attendees every 5 seconds
         if (_secondsRemaining % 5 == 0) {
           _refreshAttendees();
         }
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       } else {
         _timer?.cancel();
         _navigateToAssessment();
@@ -188,6 +202,7 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
     }
   }
 
+<<<<<<< HEAD
   void _handleAuthentication() async {
     setState(() {
       _isAuthenticated = true;
@@ -195,6 +210,15 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
     });
     // Immediately fetch attendees after authentication
     await _refreshAttendees();
+=======
+  void _handleAuthentication() {
+    setState(() {
+      _isAuthenticated = true;
+      // Note: If authenticated, we might want to refresh session data 
+      // but if the timer is the same for the whole team, we just continue.
+      _scannedCount = 7;
+    });
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   }
 
   void _onVerifyPress() async {
@@ -300,12 +324,18 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
+<<<<<<< HEAD
                   Text(
                     _userProfile?['table_no']?.toString() ?? 
                     _userProfile?['table']?.toString() ?? 
                     _activeSession?['table_no']?.toString() ?? 
                     '05', // Dynamic fallback
                     style: const TextStyle(
+=======
+                  const Text(
+                    '05', // This could be made dynamic if available in profile
+                    style: TextStyle(
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       color: Colors.white,
                       fontSize: 64,
                       fontWeight: FontWeight.bold,
@@ -368,6 +398,7 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
+<<<<<<< HEAD
           child: _isAuthenticated 
             ? SizedBox(
                 width: double.infinity,
@@ -376,6 +407,64 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00C853), // Vivid green
                     padding: const EdgeInsets.symmetric(vertical: 20),
+=======
+          child: !_isAuthenticated 
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _onVerifyPress,
+                      icon: const Icon(Icons.qr_code_scanner),
+                      label: const Text('Scan Table QR'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4A7FFF),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _onVerifyPress,
+                      icon: const Icon(Icons.key),
+                      label: const Text('Enter OTP'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF4A7FFF),
+                        side: const BorderSide(color: Color(0xFF4A7FFF)),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ActivityAssessmentPage(
+                          teamMembers: _getTeamMembers(),
+                          questions: _getAssessmentQuestions(),
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -384,12 +473,18 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
                   child: const Text(
                     'Verified • Start Assessment',
                     style: TextStyle(
+<<<<<<< HEAD
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+=======
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       color: Colors.white,
                     ),
                   ),
                 ),
+<<<<<<< HEAD
               )
             : SizedBox(
                 width: double.infinity,
@@ -407,6 +502,8 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
                     elevation: 0,
                   ),
                 ),
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               ),
         ),
       ),
@@ -433,7 +530,11 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
   }
 
   Widget _buildTeamMemberCard(TeamMember member) {
+<<<<<<< HEAD
     bool isScanned = member.isScanned;
+=======
+    bool isScanned = member.isYou ? _isAuthenticated : (member.name.contains('Arjun') || member.name.contains('Mei') || member.name.contains('David') || member.name.contains('Sarah') || member.name.contains('Carlos'));
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -507,6 +608,7 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
                 const SizedBox(height: 8),
                 Center(
                   child: Container(
+<<<<<<< HEAD
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: const Color(0xFF4A7FFF),
@@ -518,6 +620,12 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
                           offset: const Offset(0, 2),
                         ),
                       ],
+=======
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A7FFF),
+                      borderRadius: BorderRadius.circular(8),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     ),
                     child: const Text(
                       'YOU',
@@ -525,7 +633,11 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
                         color: Colors.white,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
+<<<<<<< HEAD
                         letterSpacing: 0.8,
+=======
+                        letterSpacing: 0.5,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       ),
                     ),
                   ),
@@ -535,9 +647,15 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
           ),
           if (isScanned)
             const Positioned(
+<<<<<<< HEAD
               top: 8,
               right: 8,
               child: Icon(Icons.check_circle, color: Color(0xFF00C853), size: 24),
+=======
+              top: 0,
+              right: 0,
+              child: Icon(Icons.check_circle, color: Colors.green, size: 20),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
             ),
         ],
       ),
@@ -549,6 +667,7 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
     final userName = user?['name']?.toString() ?? user?['full_name']?.toString() ?? 'Student';
     final userDept = user?['department']?.toString() ?? user?['dept']?.toString() ?? 'Computer Science';
 
+<<<<<<< HEAD
     List<TeamMember> team = [];
     
     // Add real members from API
@@ -586,6 +705,61 @@ class _TeamAllocationPageState extends State<TeamAllocationPage> {
     }
 
     return team;
+=======
+    return [
+      TeamMember(
+        name: '$userName (You)',
+        department: userDept,
+        isYou: true,
+        avatarColor: const Color(0xFF64B5F6),
+      ),
+      TeamMember(
+        name: 'Arjun Patel',
+        department: 'Mechanical Eng.',
+        avatarColor: const Color(0xFF5C6BC0),
+      ),
+      TeamMember(
+        name: 'Mei Ling',
+        department: 'Information Tech',
+        avatarColor: const Color(0xFFE57373),
+      ),
+      TeamMember(
+        name: 'David Okafor',
+        department: 'Civil Eng.',
+        avatarColor: const Color(0xFF81C784),
+      ),
+      TeamMember(
+        name: 'Sarah Miller',
+        department: 'Electrical Eng.',
+        avatarColor: const Color(0xFF78909C),
+      ),
+      TeamMember(
+        name: 'Carlos Rodriguez',
+        department: 'Design School',
+        avatarColor: const Color(0xFFFFB74D),
+      ),
+      TeamMember(
+        name: 'Aisha Khalil',
+        department: 'Architecture',
+        avatarColor: const Color(0xFF7986CB),
+      ),
+      TeamMember(
+        name: 'Rahul Verma',
+        department: 'Data Science',
+        avatarColor: const Color(0xFFA1887F),
+      ),
+      TeamMember(
+        name: 'Lina Tran',
+        department: 'Biotech',
+        avatarColor: const Color(0xFFE0E0E0),
+      ),
+      TeamMember(
+        name: 'James Wilson',
+        department: 'Robotics',
+        avatarColor: const Color(0xFF90A4AE),
+      ),
+    ];
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   }
 
   List<String> _getAssessmentQuestions() {

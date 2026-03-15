@@ -29,18 +29,27 @@ class ApiService {
   // Use 10.0.2.2 for Android emulator to reach host's localhost
   // Use localhost for web/desktop
   // Local server configuration
+<<<<<<< HEAD
   static const String localUrl = 'https://d29qdzpk-8080.inc1.devtunnels.ms';
   static const String androidEmulatorUrl =
       'https://d29qdzpk-8080.inc1.devtunnels.ms';
   static const String physicalDeviceUrl = 'http://10.150.250.47:8080';
+=======
+  static const String localUrl = 'http://localhost:8080';
+  static const String androidEmulatorUrl = 'http://10.0.2.2:8080';
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   static const String devTunnelUrl = 'https://d29qdzpk-8080.inc1.devtunnels.ms';
 
   static String get baseUrl {
     if (kIsWeb) return localUrl;
+<<<<<<< HEAD
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Use Dev Tunnel URL for Android
       return devTunnelUrl;
     }
+=======
+    if (defaultTargetPlatform == TargetPlatform.android) return androidEmulatorUrl;
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     return localUrl;
   }
 
@@ -50,7 +59,11 @@ class ApiService {
         'Accept': 'application/json',
         'X-Tunnel-Skip-AntiPhish': 'true',
       };
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       if (_authToken != null) {
         headers['Authorization'] = 'Bearer $_authToken';
       }
@@ -65,7 +78,11 @@ class ApiService {
           .timeout(const Duration(seconds: 15));
 
       debugPrint('API Response [session_configs]: ${response.statusCode}');
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       if (response.statusCode == 200) {
         lastSessionsFetchWasSuccessful = true;
         final dynamic decoded = json.decode(response.body);
@@ -105,6 +122,7 @@ class ApiService {
               dynamic matchingTokenData;
               if (tokens.isNotEmpty) {
                 final tokenMatches = tokens.where((t) {
+<<<<<<< HEAD
                   final tokenSession = t['session'] ??
                       t['session_config'] ??
                       t['sessionConfig'] ??
@@ -114,6 +132,11 @@ class ApiService {
                       tokenSession['session_name'];
                   return tokenTopic == session.topic ||
                       tokenTopic == session.sessionName;
+=======
+                  final tokenSession = t['session'] ?? t['session_config'] ?? t['sessionConfig'] ?? {};
+                  final tokenTopic = tokenSession['topic'] ?? tokenSession['sessionName'] ?? tokenSession['session_name'];
+                  return tokenTopic == session.topic || tokenTopic == session.sessionName;
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 });
                 if (tokenMatches.isNotEmpty) {
                   matchingTokenData = tokenMatches.first;
@@ -123,8 +146,12 @@ class ApiService {
               // 2. Merging Activities
               StudentActivity? matchingActivity;
               if (activities.isNotEmpty) {
+<<<<<<< HEAD
                 final activityMatches = activities.where((a) =>
                     a.title == session.topic || a.title == session.sessionName);
+=======
+                final activityMatches = activities.where((a) => a.title == session.topic || a.title == session.sessionName);
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 if (activityMatches.isNotEmpty) {
                   matchingActivity = activityMatches.first;
                 }
@@ -142,6 +169,7 @@ class ApiService {
                   status: session.status,
                   targetLevel: session.targetLevel,
                   alert: session.alert,
+<<<<<<< HEAD
                   token: matchingTokenData?['token']?.toString() ??
                       matchingActivity?.token ??
                       session.token,
@@ -151,6 +179,11 @@ class ApiService {
                   joiningTime: matchingTokenData?['timings']?['joining_time'] ??
                       matchingTokenData?['joining_time'] ??
                       session.joiningTime,
+=======
+                  token: matchingTokenData?['token']?.toString() ?? matchingActivity?.token ?? session.token,
+                  expiryTime: matchingTokenData?['timings']?['expiry_time'] ?? matchingTokenData?['expiry_time'] ?? session.expiryTime,
+                  joiningTime: matchingTokenData?['timings']?['joining_time'] ?? matchingTokenData?['joining_time'] ?? session.joiningTime,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                   activity: matchingActivity ?? session.activity,
                 );
               }
@@ -165,8 +198,12 @@ class ApiService {
         return sessions;
       } else {
         lastSessionsFetchWasSuccessful = false;
+<<<<<<< HEAD
         debugPrint(
             'Sessions Error Status: ${response.statusCode}, using fallback');
+=======
+        debugPrint('Sessions Error Status: ${response.statusCode}, using fallback');
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         return _getDummySessionConfigs();
       }
     } catch (e) {
@@ -176,6 +213,7 @@ class ApiService {
     }
   }
 
+<<<<<<< HEAD
   static Future<Map<String, dynamic>> login(
       String username, String password) async {
     // Try multiple endpoints to be resilient to backend changes
@@ -185,12 +223,22 @@ class ApiService {
       '$baseUrl/api/auth/login', // Alternative pattern
       '$baseUrl/auth/login', // Legacy/Common pattern
       '$baseUrl/api/login', // Alternate pattern
+=======
+  static Future<Map<String, dynamic>> login(String username, String password) async {
+    // Try multiple endpoints to be resilient to backend changes
+    final List<String> endpoints = [
+      '$baseUrl/api/student/login', // Most common pattern for this app
+      '$baseUrl/api/auth/login',    // Alternative pattern
+      '$baseUrl/auth/login',        // Legacy/Common pattern 
+      '$baseUrl/api/login',         // Alternate pattern
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     ];
 
     Object? lastError;
     // try endpoints
     for (final endpoint in endpoints) {
       try {
+<<<<<<< HEAD
         final rawResponse =
             await _performLoginRequest(endpoint, username, password);
         return _normalizeLoginResponse(rawResponse);
@@ -235,10 +283,24 @@ class ApiService {
               statusCode: 408);
         }
 
+=======
+        return await _performLoginRequest(endpoint, username, password);
+      } catch (e) {
+        lastError = e;
+        final errorStr = e.toString().toLowerCase();
+        if (errorStr.contains('404') || 
+            errorStr.contains('timeout') || 
+            errorStr.contains('failed to connect') ||
+            errorStr.contains('errno')) {
+          debugPrint('Notice: Issue with $endpoint ($errorStr), trying next fallback...');
+          continue;
+        }
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         rethrow;
       }
     }
 
+<<<<<<< HEAD
     // Debug-only emergency login when backend is temporarily unavailable.
     if (kDebugMode && _isGatewayOrServerError(lastError)) {
       final normalizedUser = username.trim().toLowerCase();
@@ -263,6 +325,11 @@ class ApiService {
     if (password == 'admin123') {
       debugPrint(
           'API Error: ${lastError.toString()}. Engaging Dev Bypass for admin123.');
+=======
+    // FINAL FALLBACK: Dev Bypass for testing if API is down
+    if (password == 'admin123') {
+      debugPrint('API Error: ${lastError.toString()}. Engaging Dev Bypass for admin123.');
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       return {
         'token': 'dev-token-999',
         'role': 'STUDENT',
@@ -276,6 +343,7 @@ class ApiService {
       };
     }
 
+<<<<<<< HEAD
     if (lastError != null) {
       if (lastError.toString().contains('TimeoutException') ||
           lastError.toString().contains('Connection timed out')) {
@@ -415,11 +483,47 @@ class ApiService {
         if (response.statusCode == 404) {
           throw ApiException('HTTP Error 404: Not Found (HTML Response)',
               statusCode: 404);
+=======
+    if (lastError != null) throw lastError;
+    throw Exception('Login failed: API unreachable and no bypass used.');
+  }
+
+  static Future<Map<String, dynamic>> _performLoginRequest(String url, String username, String password, {int retryCount = 0}) async {
+    try {
+      debugPrint('API Request: POST $url (attempt ${retryCount + 1})');
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-Tunnel-Skip-AntiPhish': 'true',
+            },
+            body: json.encode({
+              'username': username,
+              'email': username, // Support both common field names
+              'password': password,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      debugPrint('API Response [login]: ${response.statusCode}');
+      
+      // Detect HTML response (Dev Tunnel anti-phishing page or Express 404)
+      final body = response.body.trimLeft();
+      if (body.startsWith('<!DOCTYPE') || body.startsWith('<html') || body.startsWith('<HTML')) {
+        debugPrint('Received HTML instead of JSON');
+        
+        // If it's a 404, throw immediately so login fallback can catch it
+        if (response.statusCode == 404) {
+          throw ApiException('HTTP Error 404: Not Found (HTML Response)', statusCode: 404);
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         }
 
         if (retryCount < 2) {
           debugPrint('Retrying login request (anti-phishing bypass)...');
           await Future.delayed(const Duration(seconds: 1));
+<<<<<<< HEAD
           return _performLoginRequest(url, username, password,
               retryCount: retryCount + 1);
         }
@@ -435,6 +539,15 @@ class ApiService {
         }
         throw ApiException('Login response was not a JSON object.',
             statusCode: response.statusCode);
+=======
+          return _performLoginRequest(url, username, password, retryCount: retryCount + 1);
+        }
+        throw ApiException('Server returned an HTML page instead of JSON (Status: ${response.statusCode}).', statusCode: response.statusCode);
+      }
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return json.decode(response.body) as Map<String, dynamic>;
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       } else {
         try {
           final decoded = json.decode(response.body);
@@ -445,8 +558,12 @@ class ApiService {
             statusCode: response.statusCode,
           );
         } catch (_) {
+<<<<<<< HEAD
           throw ApiException('Login failed: ${response.statusCode}',
               statusCode: response.statusCode);
+=======
+          throw ApiException('Login failed: ${response.statusCode}', statusCode: response.statusCode);
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         }
       }
     } catch (e) {
@@ -454,6 +571,7 @@ class ApiService {
     }
   }
 
+<<<<<<< HEAD
   /// Verifies a student-entered OTP by:
   /// 1. Fetching the active hall-qr-token to read its `current_otp`
   /// 2. Comparing the entered OTP with `current_otp`
@@ -712,6 +830,45 @@ class ApiService {
     } catch (e) {
       debugPrint('Error in getActiveAttendees: $e');
       return [];
+=======
+  static Future<Map<String, dynamic>> scanToken(String code) async {
+    final url = '$baseUrl/api/hall-qr-tokens/scan';
+    debugPrint('API Request: POST $url with token: $code');
+    try {
+      final response = await http
+          .post(
+            Uri.parse(url),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-Tunnel-Skip-AntiPhish': 'true',
+              if (_authToken != null) 'Authorization': 'Bearer $_authToken',
+            },
+            body: json.encode({'otp': code}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      debugPrint('API Response [scanToken]: ${response.statusCode}');
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return json.decode(response.body);
+      } else {
+        try {
+          final decoded = json.decode(response.body);
+          throw ApiException(
+            decoded['message'] ?? 
+            decoded['error'] ?? 
+            'Failed to mark attendance: ${response.statusCode}',
+            statusCode: response.statusCode,
+          );
+        } catch (_) {
+          throw ApiException('Failed to mark attendance: ${response.statusCode}', statusCode: response.statusCode);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error in scanToken: $e');
+      rethrow;
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     }
   }
 
@@ -732,7 +889,11 @@ class ApiService {
       debugPrint('API Request: GET $url');
       final response = await http
           .get(Uri.parse(url), headers: headers)
+<<<<<<< HEAD
           .timeout(const Duration(seconds: 10));
+=======
+          .timeout(const Duration(seconds: 30));
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
       debugPrint('API Response [hall-qr-tokens]: ${response.statusCode}');
 
@@ -740,6 +901,7 @@ class ApiService {
         final dynamic decoded = json.decode(response.body);
         if (decoded is List) return decoded;
         if (decoded is Map<String, dynamic>) {
+<<<<<<< HEAD
           return decoded['data'] ??
               decoded['tokens'] ??
               decoded['content'] ??
@@ -752,6 +914,19 @@ class ApiService {
       } else {
         debugPrint(
             'hall-qr-tokens error: ${response.statusCode}, using fallback');
+=======
+          return decoded['data'] ?? 
+                 decoded['tokens'] ?? 
+                 decoded['content'] ?? 
+                 decoded['session_configs'] ?? 
+                 decoded['sessionConfigs'] ?? 
+                 decoded['sessions'] ?? 
+                 [decoded];
+        }
+        return [];
+      } else {
+        debugPrint('hall-qr-tokens error: ${response.statusCode}, using fallback');
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         return _getDummyHallQrTokens();
       }
     } catch (e) {
@@ -760,6 +935,7 @@ class ApiService {
     }
   }
 
+<<<<<<< HEAD
   static Future<void> updateSessionTableCount({
     required String sessionId,
     required int tableCount,
@@ -866,6 +1042,8 @@ class ApiService {
     throw ApiException('Failed to update table count after multiple attempts.');
   }
 
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   static List<dynamic> _getDummyHallQrTokens() {
     return [
       {
@@ -907,8 +1085,13 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getUserProfile() async {
     final List<String> endpoints = [
+<<<<<<< HEAD
       '$baseUrl/auth/me', // Prioritize the one requested by the user
       '$baseUrl/api/auth/me',
+=======
+      '$baseUrl/api/auth/me',
+      '$baseUrl/auth/me',
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
       '$baseUrl/api/me',
     ];
 
@@ -927,20 +1110,34 @@ class ApiService {
         debugPrint('API Request: GET $url');
         final response = await http
             .get(Uri.parse(url), headers: headers)
+<<<<<<< HEAD
             .timeout(const Duration(seconds: 30));
 
         debugPrint('API Response [profile]: ${response.statusCode}');
 
+=======
+            .timeout(const Duration(seconds: 10));
+
+        debugPrint('API Response [profile]: ${response.statusCode}');
+        
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         if (response.statusCode == 200) {
           return json.decode(response.body);
         } else if (response.statusCode == 404) {
           debugPrint('404 on $url, trying next fallback if available...');
+<<<<<<< HEAD
           lastError =
               ApiException('Profile endpoint not found: 404', statusCode: 404);
           continue;
         } else {
           throw ApiException('Failed to load profile: ${response.statusCode}',
               statusCode: response.statusCode);
+=======
+          lastError = ApiException('Profile endpoint not found: 404', statusCode: 404);
+          continue;
+        } else {
+          throw ApiException('Failed to load profile: ${response.statusCode}', statusCode: response.statusCode);
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         }
       } catch (e) {
         lastError = e;
@@ -974,6 +1171,7 @@ class ApiService {
             Uri.parse(url),
             headers: headers,
           )
+<<<<<<< HEAD
           .timeout(const Duration(
               seconds: 10)); // Reduced to 30s to trigger fallback faster
 
@@ -983,6 +1181,16 @@ class ApiService {
         lastActivitiesFetchWasSuccessful = true;
         final dynamic decoded = json.decode(response.body);
 
+=======
+          .timeout(const Duration(seconds: 10)); // Reduced to 30s to trigger fallback faster
+
+      debugPrint('API Response Status: [activities] ${response.statusCode}');
+      
+      if (response.statusCode == 200) {
+        lastActivitiesFetchWasSuccessful = true;
+        final dynamic decoded = json.decode(response.body);
+        
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         List<dynamic> jsonList;
         if (decoded is List) {
           jsonList = decoded;
@@ -1002,8 +1210,12 @@ class ApiService {
             .toList();
       } else {
         lastActivitiesFetchWasSuccessful = false;
+<<<<<<< HEAD
         debugPrint(
             'Activities Error Status: ${response.statusCode}, using fallback');
+=======
+        debugPrint('Activities Error Status: ${response.statusCode}, using fallback');
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         return _getDummyActivities();
       }
     } catch (e) {
@@ -1081,11 +1293,17 @@ class ApiService {
 
   static List<SessionConfig> _getDummySessionConfigs() {
     final now = DateTime.now();
+<<<<<<< HEAD
     final today =
         "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
     final tomorrow =
         "${now.year}-${now.month.toString().padLeft(2, '0')}-${(now.day + 1).toString().padLeft(2, '0')}";
 
+=======
+    final today = "${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')}";
+    final tomorrow = "${now.year}-${now.month.toString().padLeft(2,'0')}-${(now.day + 1).toString().padLeft(2,'0')}";
+    
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     return [
       SessionConfig(
         id: '1',
@@ -1181,6 +1399,7 @@ class ApiService {
   }
 
   // Booking logic
+<<<<<<< HEAD
   static Future<void> bookSlot(
       StudentActivity activity, DateTime date, String timeRange) async {
     
@@ -1316,5 +1535,51 @@ class ApiService {
     }
     
     return allSessions;
+=======
+  static Future<void> bookSlot(StudentActivity activity, DateTime date, String timeRange) async {
+    // In a real app, this would be a POST request
+    _bookedSlots.add({
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'title': activity.title,
+      'date': date,
+      'time': timeRange,
+      'hall': activity.subtitle.split('•').first.trim(),
+      'targetLevel': activity.levels.toString(),
+      'warning': 'Please be on time',
+    });
+    debugPrint('Booked slot: ${activity.title} at $timeRange on ${date.toString()}');
+  }
+
+  static List<Map<String, dynamic>> getBookedSlots() {
+    final now = DateTime.now();
+    return _bookedSlots.map((slot) {
+      final DateTime date = slot['date'];
+      final String timeRange = slot['time'];
+      
+      // Parse start time from range "10:00 AM - 11:30 AM"
+      final startTimeStr = timeRange.split('-').first.trim();
+      final startTimeParts = startTimeStr.split(' ');
+      final timeParts = startTimeParts[0].split(':');
+      int hour = int.parse(timeParts[0]);
+      int minute = int.parse(timeParts[1]);
+      final amPm = startTimeParts[1];
+
+      if (amPm == 'PM' && hour < 12) hour += 12;
+      if (amPm == 'AM' && hour == 12) hour = 0;
+
+      final sessionStartTime = DateTime(date.year, date.month, date.day, hour, minute);
+      
+      String status = 'UPCOMING';
+      if (now.isAfter(sessionStartTime)) {
+        status = 'ACTIVE';
+      }
+
+      return {
+        ...slot,
+        'status': status,
+        'displayDate': DateFormat('MMM dd').format(date),
+      };
+    }).where((slot) => slot['status'] == 'UPCOMING' || slot['status'] == 'ACTIVE').toList();
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
   }
 }

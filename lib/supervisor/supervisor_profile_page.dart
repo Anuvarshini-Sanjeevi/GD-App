@@ -15,16 +15,62 @@ class SupervisorProfilePage extends StatefulWidget {
 
 class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
   Map<String, dynamic>? _profile;
+<<<<<<< HEAD
   bool _isLoading = true;
   String? _error;
+=======
+  Map<String, dynamic>? _activeSession;
+  bool _isLoading = true;
+  String? _error;
+  Timer? _refreshTimer;
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
   @override
   void initState() {
     super.initState();
+<<<<<<< HEAD
     _loadProfile();
   }
 
 
+=======
+    _loadData();
+    // Refresh active session every minute
+    _refreshTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      _loadActiveSession();
+    });
+  }
+
+  Future<void> _loadData() async {
+    await Future.wait([
+      _loadProfile(),
+      _loadActiveSession(),
+    ]);
+  }
+
+  Future<void> _loadActiveSession() async {
+    try {
+      final sessions = await ApiService.getHallQrTokens();
+      final active = sessions.firstWhere(
+        (s) => s['is_active'] == true || s['status']?.toString().toUpperCase() == 'ACTIVE',
+        orElse: () => null,
+      );
+      if (mounted) {
+        setState(() {
+          _activeSession = active;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading active session on profile: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
   Future<void> _loadProfile() async {
     try {
@@ -77,6 +123,7 @@ class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
     }
 
     final user = _profile?['user'] ?? _profile;
+<<<<<<< HEAD
     
     // Exhaustive extraction for supervisor
     final name = user?['name']?.toString() ?? 
@@ -134,6 +181,14 @@ class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
                        user?['admission_no']?.toString() ?? 
                        user?['username']?.toString() ?? 
                        '-';
+=======
+    final name = user?['name']?.toString() ?? 'Supervisor';
+    final role = user?['role']?.toString() ?? 'Faculty';
+    final department = user?['department']?.toString() ?? 'Not Assigned';
+    final office = user?['office']?.toString() ?? user?['location']?.toString() ?? 'Not Specified';
+    final email = user?['email']?.toString() ?? 'No Email';
+    final phone = user?['phone']?.toString() ?? user?['phoneNumber']?.toString() ?? 'No Phone';
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
     return Scaffold(
         backgroundColor: const Color(0xFFF8FAFF),
@@ -148,7 +203,12 @@ class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
                 _buildAccessCard(),
 
                 // Active Session Card (New)
+<<<<<<< HEAD
 
+=======
+                if (_activeSession != null)
+                  _buildActiveSessionCard(),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
                 Padding(
                   padding:
@@ -188,6 +248,7 @@ class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
                           label: 'Phone Number',
                           value: phone,
                         ),
+<<<<<<< HEAD
                         const Divider(height: 1, indent: 56),
                         _buildDetailItem(
                           icon: Icons.badge_outlined,
@@ -200,6 +261,8 @@ class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
                           label: 'Batch',
                           value: batch,
                         ),
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       ]),
 
                       const SizedBox(height: 28),
@@ -216,6 +279,7 @@ class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
                       // Logout Button
                       _buildLogoutButton(context),
 
+<<<<<<< HEAD
                       const SizedBox(height: 20),
                       // Debug helper for supervisor
                       Center(
@@ -240,6 +304,8 @@ class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
                           ),
                         ),
                       ),
+=======
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -307,7 +373,11 @@ class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
             name,
             style: const TextStyle(
               color: Colors.white,
+<<<<<<< HEAD
               fontSize: 22,
+=======
+              fontSize: 24,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -537,4 +607,103 @@ class _SupervisorProfilePageState extends State<SupervisorProfilePage> {
       ),
     );
   }
+<<<<<<< HEAD
+=======
+
+  Widget _buildActiveSessionCard() {
+    final Map<String, dynamic> sessionData = _activeSession is Map 
+        ? (_activeSession!['session'] ?? _activeSession!['session_config'] ?? _activeSession!) 
+        : {};
+    
+    final String title = sessionData['topic'] ?? 'Active Session';
+    final String hall = sessionData['hall'] ?? 'Main Hall';
+    final String otp = _activeSession!['current_otp']?.toString() ?? 
+                      _activeSession!['otp']?.toString() ?? 
+                      '...';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4A7FFF), Color(0xFF6B4CE6)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF4A7FFF).withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'CURRENT ACTIVE SESSION',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  hall,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                const Text(
+                  'OTP',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  otp,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 }

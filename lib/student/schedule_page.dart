@@ -14,6 +14,7 @@ class SchedulePage extends StatefulWidget {
 }
 
 class _SchedulePageState extends State<SchedulePage> {
+<<<<<<< HEAD
   List<StudentActivity> _activities = [];
   bool _isLoading = true;
   String? _errorMessage;
@@ -25,6 +26,12 @@ class _SchedulePageState extends State<SchedulePage> {
     _searchController.dispose();
     super.dispose();
   }
+=======
+  int _selectedTab = 0; // 0 for Upcoming, 1 for History
+  List<StudentActivity> _activities = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
   @override
   void initState() {
@@ -116,7 +123,11 @@ class _SchedulePageState extends State<SchedulePage> {
           style: const TextStyle(
             color: Color(0xFF0D2146),
             fontWeight: FontWeight.bold,
+<<<<<<< HEAD
             fontSize: 20,
+=======
+            fontSize: 28,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
           ),
         ),
         backgroundColor: Colors.white,
@@ -127,11 +138,38 @@ class _SchedulePageState extends State<SchedulePage> {
         child: Column(
           children: [
             const SizedBox(height: 16),
+<<<<<<< HEAD
+=======
+            // Tab Switcher
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F7FF),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildTab('Upcoming', 0),
+                    ),
+                    Expanded(
+                      child: _buildTab('History', 1),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Search and Filters
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
                   TextField(
+<<<<<<< HEAD
                     controller: _searchController,
                     onChanged: (value) {
                       setState(() {
@@ -152,6 +190,11 @@ class _SchedulePageState extends State<SchedulePage> {
                               },
                             )
                           : null,
+=======
+                    decoration: InputDecoration(
+                      hintText: 'Search activities by name or skill',
+                      prefixIcon: const Icon(Icons.search, color: Color(0xFF9CA3AF)),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                       filled: true,
                       fillColor: const Color(0xFFF9FAFB),
                       border: OutlineInputBorder(
@@ -161,9 +204,66 @@ class _SchedulePageState extends State<SchedulePage> {
                       contentPadding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
+<<<<<<< HEAD
                 ],
               ),
             ),
+=======
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: 'All activity types',
+                              items: ['All activity types', 'Technical', 'Soft Skills']
+                                  .map((e) => DropdownMenuItem<String>(
+                                        value: e,
+                                        child: Text(e, style: const TextStyle(fontSize: 14)),
+                                      ))
+                                  .toList(),
+                              onChanged: (_) {},
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: 'Sort by activity',
+                              items: ['Sort by activity', 'A-Z', 'Date']
+                                  .map((e) => DropdownMenuItem<String>(
+                                        value: e,
+                                        child: Text(e, style: const TextStyle(fontSize: 14)),
+                                      ))
+                                  .toList(),
+                              onChanged: (_) {},
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
             // Schedule List
             Expanded(
               child: _buildBody(),
@@ -249,12 +349,25 @@ class _SchedulePageState extends State<SchedulePage> {
       );
     }
 
+<<<<<<< HEAD
     // Filter activities based on search query
     final filteredActivities = _activities.where((activity) {
       final titleMatch = activity.title.toLowerCase().contains(_searchQuery);
       final subtitleMatch = activity.subtitle.toLowerCase().contains(_searchQuery);
       final categoryMatch = activity.category.toLowerCase().contains(_searchQuery);
       return titleMatch || subtitleMatch || categoryMatch;
+=======
+    // Filter activities based on selected tab
+    final filteredActivities = _activities.where((activity) {
+      final status = activity.status.toUpperCase();
+      if (_selectedTab == 0) {
+        // Upcoming: Show anything that isn't finished
+        return !['COMPLETED', 'CLOSED', 'CANCELLED', 'FINISHED', 'DONE'].contains(status);
+      } else {
+        // History: Show only finished things
+        return ['COMPLETED', 'CLOSED', 'CANCELLED', 'FINISHED', 'DONE'].contains(status);
+      }
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
     }).toList();
 
     if (filteredActivities.isEmpty) {
@@ -263,27 +376,47 @@ class _SchedulePageState extends State<SchedulePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
+<<<<<<< HEAD
               Icons.search_off_rounded,
+=======
+              _selectedTab == 0 ? Icons.event_available_rounded : Icons.history_rounded,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               size: 64,
               color: Colors.grey.shade400,
             ),
             const SizedBox(height: 16),
+<<<<<<< HEAD
             const Text(
               'No activities found',
               style: TextStyle(
                 fontSize: 16,
+=======
+            Text(
+              _selectedTab == 0 ? 'No active sessions' : 'No history found',
+              style: const TextStyle(
+                fontSize: 18,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF0D2146),
               ),
             ),
             const SizedBox(height: 8),
             Text(
+<<<<<<< HEAD
               _searchQuery.isEmpty
                 ? 'There are no sessions available at the moment.'
                 : 'Try searching with different keywords.',
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 13,
+=======
+              _selectedTab == 0 
+                ? 'There are no scheduled sessions at the moment.'
+                : 'Your past sessions will appear here.',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
               ),
             ),
           ],
@@ -331,10 +464,67 @@ class _SchedulePageState extends State<SchedulePage> {
           ),
         ],
       ),
+<<<<<<< HEAD
     );
   }
 
 
+=======
+      child: Row(
+        children: [
+          const Icon(Icons.book_outlined, color: Color(0xFF4A7FFF)),
+          const SizedBox(width: 12),
+          const Text(
+            'Course Materials',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const Spacer(),
+          Icon(Icons.chevron_right, color: Colors.grey.shade400),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTab(String label, int index) {
+    bool isSelected = _selectedTab == index;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTab = index;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : [],
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? const Color(0xFF0D2146) : Colors.grey.shade600,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
 
   Widget _buildScheduleCard({
     required StudentActivity activity,
@@ -383,7 +573,11 @@ class _SchedulePageState extends State<SchedulePage> {
                     Text(
                       activity.title,
                       style: const TextStyle(
+<<<<<<< HEAD
                         fontSize: 18,
+=======
+                        fontSize: 22,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF111827),
                       ),
@@ -398,12 +592,58 @@ class _SchedulePageState extends State<SchedulePage> {
                     ),
                   ],
                 ),
+<<<<<<< HEAD
                 const SizedBox(height: 12),
+=======
+                const SizedBox(height: 20),
+                // Course Details Section
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined, color: Color(0xFF4A7FFF), size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Course Details',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              activity.subtitle,
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                 Text(
                   'Levels: ${activity.levels}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
+<<<<<<< HEAD
                     fontSize: 14,
+=======
+                    fontSize: 15,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                     color: Color(0xFF111827),
                   ),
                 ),
@@ -434,7 +674,11 @@ class _SchedulePageState extends State<SchedulePage> {
                     child: const Text(
                       'Book a Slot',
                       style: TextStyle(
+<<<<<<< HEAD
                         fontSize: 15,
+=======
+                        fontSize: 16,
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
                         fontWeight: FontWeight.bold,
                       ),
                     ),

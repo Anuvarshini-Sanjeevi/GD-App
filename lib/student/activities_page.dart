@@ -28,7 +28,11 @@ class _ActivitiesPageState extends State<ActivitiesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+<<<<<<< HEAD
         title: const Text('Team Activities', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+=======
+        title: const Text('Team Activities'),
+>>>>>>> 60bed6f0fd6ef27fcf4a221174415c5c7ec02cb3
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
         elevation: 0.5,
