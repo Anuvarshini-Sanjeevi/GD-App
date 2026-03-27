@@ -13,9 +13,9 @@ const StudentDashboard: React.FC = () => {
                     <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Student Portal</h1>
                     <button
                         onClick={() => navigate('/')}
-                        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors font-semibold shadow-sm"
+                        className="flex items-center gap-2.5 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-slate-600 hover:bg-slate-50 transition-all font-black text-[11px] uppercase tracking-widest shadow-sm active:scale-95"
                     >
-                        <LogOut size={18} />
+                        <LogOut size={16} className="text-red-400" />
                         Logout
                     </button>
                 </div>
@@ -23,8 +23,9 @@ const StudentDashboard: React.FC = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm text-center"
+                    className="glass-card p-12 rounded-[2.5rem] text-center relative overflow-hidden"
                 >
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400" />
                     <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
                         <span className="text-2xl font-bold text-indigo-600">P</span>
                     </div>

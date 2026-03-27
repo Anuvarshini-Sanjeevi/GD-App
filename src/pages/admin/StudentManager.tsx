@@ -25,11 +25,12 @@ const StudentManager = () => {
             </div>
 
             {/* Empty State / Placeholder */}
-            <div className="flex flex-col items-center justify-center py-32 bg-white/40 rounded-3xl border border-dashed border-slate-200 backdrop-blur-sm">
-                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
-                    <Users className="w-8 h-8 text-slate-300" />
+            <div className="flex flex-col items-center justify-center py-32 glass-card rounded-3xl backdrop-blur-sm p-10 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/20 via-primary to-primary/20" />
+                <div className="w-16 h-16 bg-slate-50/80 border border-slate-100 rounded-2xl flex items-center justify-center mb-6 shadow-sm">
+                    <Users className="w-8 h-8 text-slate-400" />
                 </div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-2">Student Directory</h3>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Student Directory</h3>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center max-w-xs leading-relaxed">
                     Access and manage student profiles.
                     <br />

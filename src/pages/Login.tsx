@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { GraduationCap, User, Lock, ChevronRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, User, Lock, ChevronRight, AlertCircle } from 'lucide-react';
 import { authApi } from '../utils/api';
 
 const Login: React.FC = () => {
@@ -17,7 +18,12 @@ const Login: React.FC = () => {
 
         try {
             const response = await authApi.post('/login', { username, password });
-            const { role } = response.data;
+            const { token, user } = response.data;
+            const role = user.role.toUpperCase();
+
+            // Store credentials
+            localStorage.setItem('token', token);
+            localStorage.setItem('userData', JSON.stringify(user));
 
             // Role-based redirection
             if (role === 'ADMIN') {
@@ -38,71 +44,90 @@ const Login: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-[#F8FAFC]">
-            {/* Static Background Accents */}
-            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-blue-50 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] left-[-5%] w-[50%] h-[50%] bg-indigo-50/50 rounded-full blur-[150px]" />
+        <div className="min-h-screen w-full flex items-center justify-center bg-background relative overflow-hidden">
+            {/* Professional Background Orbs */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+                <div className="absolute top-[-15%] right-[-10%] w-[50%] h-[50%] bg-primary/5 rounded-full blur-[140px]" />
+                <div className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-500/5 rounded-full blur-[160px]" />
             </div>
 
-            <div className="relative z-10 w-full max-w-[460px] px-6 py-12 flex flex-col items-center">
-                {/* Branding Header */}
-                <div className="flex flex-col items-center mb-10 text-center">
-                    <div className="w-16 h-16 bg-white shadow-[0_12px_24px_-8px_rgba(59,130,246,0.15)] rounded-2xl flex items-center justify-center border border-slate-100 mb-6">
-                        <GraduationCap size={32} className="text-blue-600" />
+            <div className="relative z-10 w-full max-w-[480px] px-6 py-12 flex flex-col items-center">
+                {/* Branding */}
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col items-center mb-10 text-center"
+                >
+                    <div className="w-14 h-14 bg-white shadow-xl shadow-primary/10 rounded-2xl flex items-center justify-center border border-slate-100 mb-6">
+                        <GraduationCap size={28} className="text-primary" />
                     </div>
 
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight mb-2">
-                        Welcome Back
+                    <h1 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+                        Education Portal
                     </h1>
-                    <p className="text-slate-500 font-medium text-sm">
-                        Sign in to access your dashboard
+                    <p className="text-slate-400 font-medium text-xs uppercase tracking-widest">
+                        Professional Learning Management
                     </p>
-                </div>
+                </motion.div>
 
-                {/* Main Login Card */}
-                <div className="w-full bg-white border border-slate-200/60 rounded-[2.5rem] p-10 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.03)] transition-all">
-                    {/* Status Display: Error or Success */}
+                {/* Login Card */}
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="w-full glass-card rounded-[2rem] p-10 overflow-hidden relative"
+                >
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
+                    
+                    <div className="mb-8">
+                        <h2 className="text-xl font-bold text-slate-800">Welcome Back</h2>
+                        <p className="text-slate-400 text-sm mt-1">Please enter your details to continue</p>
+                    </div>
+
                     {error && (
-                        <div className="mb-6 bg-red-50 border border-red-100 rounded-2xl p-4 flex items-start gap-3 text-red-600 text-sm font-medium animate-in fade-in duration-300">
-                            <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+                        <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            className="mb-6 bg-red-50 border border-red-100 rounded-xl p-3.5 flex items-start gap-3 text-red-600 text-[13px] font-medium"
+                        >
+                            <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
                             <span>{error}</span>
-                        </div>
+                        </motion.div>
                     )}
 
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-slate-500 text-[11px] font-bold tracking-widest uppercase ml-1" htmlFor="username">
+                    <form onSubmit={handleLogin} className="space-y-5">
+                        <div className="space-y-1.5">
+                            <label className="text-slate-500 text-[10px] font-bold tracking-wider uppercase ml-1" htmlFor="username">
                                 Username
                             </label>
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <User size={18} strokeWidth={2} />
+                                    <User size={17} />
                                 </div>
                                 <input
                                     id="username"
                                     type="text"
-                                    placeholder="Enter username"
+                                    placeholder="your-username"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 focus:bg-white transition-all outline-none text-slate-700 placeholder:text-slate-300 font-medium text-sm"
+                                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-white transition-all outline-none text-slate-700 placeholder:text-slate-300 font-medium text-sm"
                                     required
                                 />
                             </div>
                         </div>
 
-                        <div className="space-y-2">
+                        <div className="space-y-1.5">
                             <div className="flex justify-between items-center ml-1">
-                                <label className="text-slate-500 text-[11px] font-bold tracking-widest uppercase" htmlFor="password">
+                                <label className="text-slate-500 text-[10px] font-bold tracking-wider uppercase" htmlFor="password">
                                     Password
                                 </label>
-                                <Link to="/forgot" className="text-blue-600 hover:text-blue-700 text-[11px] font-bold uppercase tracking-wider">
+                                <Link to="/forgot" className="text-primary hover:text-primary/80 text-[10px] font-bold uppercase tracking-wider transition-colors">
                                     Forgot?
                                 </Link>
                             </div>
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <Lock size={18} strokeWidth={2} />
+                                    <Lock size={17} />
                                 </div>
                                 <input
                                     id="password"
@@ -110,71 +135,80 @@ const Login: React.FC = () => {
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500/20 focus:bg-white transition-all outline-none text-slate-700 placeholder:text-slate-300 font-medium text-sm"
+                                    className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary/30 focus:bg-white transition-all outline-none text-slate-700 placeholder:text-slate-300 font-medium text-sm"
                                     required
                                 />
                             </div>
                         </div>
 
-                        {/* Remember Me */}
-                        <div className="flex items-center gap-2 px-1">
+                        <div className="flex items-center gap-2.5 px-1 py-1">
                             <input
                                 type="checkbox"
                                 id="remember"
-                                className="w-4 h-4 rounded border-slate-200 text-blue-600 focus:ring-blue-500/10 cursor-pointer"
+                                className="w-4 h-4 rounded-md border-slate-200 text-primary focus:ring-primary/20 cursor-pointer"
                             />
-                            <label htmlFor="remember" className="text-slate-500 text-xs font-medium cursor-pointer">
-                                Keep me signed in
+                            <label htmlFor="remember" className="text-slate-400 text-xs font-medium cursor-pointer select-none">
+                                Remember this device
                             </label>
                         </div>
 
                         <button
                             disabled={isLoading}
                             type="submit"
-                            className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-xl shadow-slate-900/10 hover:bg-slate-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                            className="btn-premium w-full py-3.5 bg-slate-900 text-white font-bold rounded-xl shadow-lg shadow-slate-900/10 hover:shadow-xl hover:shadow-slate-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2"
                         >
                             {isLoading ? (
                                 <>
-                                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                    <span>Signing in...</span>
+                                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                    <span className="text-sm">Authenticating...</span>
                                 </>
                             ) : (
                                 <>
-                                    <span>Sign In</span>
-                                    <ChevronRight size={18} strokeWidth={3} />
+                                    <span className="text-sm">Sign Into Portal</span>
+                                    <ChevronRight size={16} strokeWidth={3} />
                                 </>
                             )}
                         </button>
                     </form>
 
-                    {/* Minimalist Divider */}
-                    <div className="relative my-9 flex items-center justify-center">
+                    {/* Divider */}
+                    <div className="relative my-8 flex items-center justify-center">
                         <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
                         <div className="relative bg-white px-4">
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">OR</span>
+                            <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">secure access</span>
                         </div>
                     </div>
 
                     <button
                         type="button"
-                        className="w-full py-4 bg-white border border-slate-100 text-slate-600 font-bold rounded-2xl flex items-center justify-center gap-3 hover:bg-slate-50 hover:border-slate-200 transition-all text-sm shadow-sm active:scale-[0.98]"
+                        className="w-full py-3.5 bg-white border border-slate-100 text-slate-600 font-bold rounded-xl flex items-center justify-center gap-3 hover:bg-slate-50 hover:border-slate-200 transition-all text-xs shadow-sm active:scale-[0.98]"
                     >
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                        Continue with Google
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
+                        Professional Account
                     </button>
-                </div>
+                </motion.div>
 
                 {/* Footer */}
-                <p className="mt-10 text-center text-slate-400 text-sm font-medium">
-                    Don't have an account?{' '}
-                    <Link to="/signup" className="text-blue-600 font-bold hover:underline">
-                        Get started
+                <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-10 text-center text-slate-400 text-xs font-medium"
+                >
+                    Management access only. Need help?{' '}
+                    <Link to="/support" className="text-primary font-bold hover:underline">
+                        Contact IT
                     </Link>
-                </p>
+                </motion.p>
             </div>
 
-            {/* Subtle Pattern Overlay */}
-            <div className="absolute inset-0 z-[-1] opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+            {/* Subtle Grid Pattern Overlay */}
+            <div className="absolute inset-x-0 top-0 h-full z-[-1] opacity-[0.03]" 
+                style={{ 
+                    backgroundImage: `linear-gradient(to right, #808080 1px, transparent 1px), linear-gradient(to bottom, #808080 1px, transparent 1px)`,
+                    backgroundSize: '40px 40px'
+                }} 
+            />
         </div>
     );
 };

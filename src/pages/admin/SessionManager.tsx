@@ -3,15 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import {
     Plus,
     Search,
-    MoreVertical,
     QrCode,
     Users,
     Calendar,
-    ChevronRight,
     Zap,
-    Loader2
+    Loader2,
+    RefreshCw
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CreateSessionModal } from '../../components/admin/CreateSessionModal';
+import api, { getCurrentUser } from '../../utils/api';
 
 const SessionManager = () => {
     const navigate = useNavigate();
@@ -19,262 +20,348 @@ const SessionManager = () => {
     const [sessionList, setSessionList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [filter, setFilter] = useState('All');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [refreshing, setRefreshing] = useState(false);
 
-    // Helper function to determine the final status
     const determineStatus = (token: any) => {
-        // If backend says INACTIVE manually (e.g. cancelled), return Inactive
         if (token.status === 'INACTIVE') return 'Inactive';
-
-        // 1. Parsing Start Time
-        // token.start_time is "HH:MM" string. token.createdAt is ISO Date string.
-        // We assume session is for "Today" if start_time is just time. 
-        // OR better: use createdAt's date combined with start_time's time.
-
         const createdDate = new Date(token.createdAt);
-        let startDate = new Date(createdDate); // Clone date
-
+        let startDate = new Date(createdDate);
         if (token.start_time && token.start_time.includes(':')) {
             const [hours, minutes] = token.start_time.split(':').map(Number);
             startDate.setHours(hours, minutes, 0, 0);
-
-            // Edge case: If start time is earlier than created time (e.g. created at 9:05 for 9:00 start), 
-            // it means it started immediately or slightly in past. 
-            // If created yesterday for today? Unlikely in this MVP. 
-            // Assume "Today" based on createdDate.
         } else {
-            // Fallback if no start_time string
             startDate = createdDate;
         }
-
-        // 2. Duration Config
         const totalDurationMinutes = token.expires_in_minutes || 60;
-        const joiningDurationMinutes = 5; // Fixed joining window (5 mins)
-
-        // 3. Current Time
+        const joiningDurationMinutes = 5;
         const now = new Date();
-
-        // 4. Status Logic
-        if (now < startDate) {
-            return 'Active'; // Scheduled / Coming Up
-        }
-
+        if (now < startDate) return 'Active';
         const minutesSinceStart = (now.getTime() - startDate.getTime()) / 60000;
-
-        if (minutesSinceStart < joiningDurationMinutes) {
-            return 'Joining'; // Within the first 10 mins
-        }
-
-        if (minutesSinceStart < totalDurationMinutes) {
-            return 'InProgress'; // After joining, before expiry
-        }
-
-        return 'Completed'; // After expiry
+        if (minutesSinceStart < joiningDurationMinutes) return 'Joining';
+        if (minutesSinceStart < totalDurationMinutes) return 'InProgress';
+        return 'Completed';
     };
 
-    const fetchSessions = async () => {
+    const fetchSessions = async (isManual = false) => {
         try {
-            setLoading(true);
-            const response = await fetch('http://localhost:8080/api/hall-qr-tokens');
-            if (!response.ok) throw new Error('Failed to synchronize tokens');
-            const data = await response.json();
+            if (isManual) setRefreshing(true);
+            else setLoading(true);
 
-            // Map backend HallQrToken to frontend Session format
-            const mapped = data.map((token: any) => ({
-                id: `T-${token.token_id}`,
-                type: token.hall_qr_token,
-                level: 'System Sync',
-                students: token.scan_count || 0,
-                status: determineStatus(token),
-                time: token.start_time || new Date(token.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }));
+            const user = getCurrentUser();
+            const adminId = user?.admin_id || 78;
+            const response = await api.get('/hall-qr-tokens', {
+                params: { created_by_admin_id: adminId }
+            });
+            const data = response.data;
+
+            const mapped = data.map((token: any) => {
+                const createdDate = new Date(token.createdAt);
+                let displayTime = '';
+                const startTime = token.start_time;
+                if (startTime) {
+                    const parsedDate = new Date(startTime);
+                    if (!isNaN(parsedDate.getTime())) {
+                        displayTime = parsedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    } else if (startTime.includes(':')) {
+                        const parts = startTime.split(':').map(Number);
+                        if (parts.length >= 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                            const date = new Date();
+                            date.setHours(parts[0], parts[1], 0, 0);
+                            displayTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        }
+                    }
+                }
+                if (!displayTime) {
+                    displayTime = createdDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+                const displayDate = createdDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+                return {
+                    id: `T-${token.token_id}`,
+                    type: token.hall_qr_token,
+                    level: token.sessionConfig?.complexity_level || 'L1',
+                    supervisor: token.supervisor?.name || 'Unassigned',
+                    students: token.scan_count || 0,
+                    status: token.session_status || determineStatus(token),
+                    time: `${displayDate} at ${displayTime}`,
+                    date: displayDate,
+                    displayTime,
+                    start_mode: token.start_mode,
+                    duration: token.expires_in_minutes || 60,
+                };
+            });
 
             setSessionList(mapped);
             setError(null);
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || 'Failed to load sessions');
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
     };
 
     useEffect(() => {
         fetchSessions();
-        const interval = setInterval(fetchSessions, 30000); // Auto-refresh status every 30s
+        const interval = setInterval(() => fetchSessions(), 30000);
         return () => clearInterval(interval);
     }, []);
 
-    const handleCreateSession = (newSession: any) => {
-        setSessionList(prev => [newSession, ...prev]);
+    const handleCreateSession = () => {
+        fetchSessions();
+        setShowCreate(false);
     };
 
-    const [filter, setFilter] = useState('All');
+    // Status config
+    const statusConfig: Record<string, { label: string; dot: string; badge: string }> = {
+        'Active':      { label: 'Scheduled',   dot: 'bg-emerald-400',  badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+        'CREATED':     { label: 'Scheduled',   dot: 'bg-emerald-400',  badge: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+        'Joining':     { label: 'Joining',     dot: 'bg-amber-400 animate-pulse', badge: 'bg-amber-50 text-amber-700 ring-amber-200' },
+        'JOINING':     { label: 'Joining',     dot: 'bg-amber-400 animate-pulse', badge: 'bg-amber-50 text-amber-700 ring-amber-200' },
+        'InProgress':  { label: 'In Progress', dot: 'bg-blue-500 animate-pulse',  badge: 'bg-blue-50 text-blue-700 ring-blue-200' },
+        'PROGRESS':    { label: 'In Progress', dot: 'bg-blue-500 animate-pulse',  badge: 'bg-blue-50 text-blue-700 ring-blue-200' },
+        'Completed':   { label: 'Completed',   dot: 'bg-slate-300',    badge: 'bg-slate-50 text-slate-500 ring-slate-200' },
+        'COMPLETED':   { label: 'Completed',   dot: 'bg-slate-300',    badge: 'bg-slate-50 text-slate-500 ring-slate-200' },
+        'Inactive':    { label: 'Inactive',    dot: 'bg-red-400',      badge: 'bg-red-50 text-red-600 ring-red-200' },
+    };
 
-    // Filter sessions based on selected tab
-    const filteredSessions = sessionList.filter(session => {
-        if (filter === 'All') return true; // Show all sessions
-        if (filter === 'Active') return session.status === 'Active';
-        if (filter === 'Joining') return session.status === 'Joining';
-        if (filter === 'InProgress') return session.status === 'InProgress';
-        if (filter === 'Completed') return session.status === 'Completed';
-        return true;
-    }).sort((a, b) => {
-        // Custom sort order: Active/Joining/InProgress first (order by time if needed?), Completed last
-        if (a.status === 'Completed' && b.status !== 'Completed') return 1;
-        if (a.status !== 'Completed' && b.status === 'Completed') return -1;
+    const getStatusConfig = (status: string) =>
+        statusConfig[status] || { label: status, dot: 'bg-slate-300', badge: 'bg-slate-50 text-slate-500 ring-slate-200' };
 
-        // Secondary sort: Time? For now just keep existing order (likely created desc)
-        // Actually backend returns recent first? Let's assume input list is sorted by date/time
-        return 0;
-    });
+    const isPastSession = (status: string) =>
+        status === 'Completed' || status === 'COMPLETED' || status === 'Inactive';
 
     const tabs = [
-        { id: 'All', label: 'All Activities', count: sessionList.length, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-        { id: 'InProgress', label: 'Progress Activity', count: sessionList.filter(s => s.status === 'InProgress').length, color: 'text-blue-600 bg-blue-50 border-blue-100' },
-        { id: 'Active', label: 'Created Activity', count: sessionList.filter(s => s.status === 'Active').length, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' },
-        { id: 'Joining', label: 'Joining', count: sessionList.filter(s => s.status === 'Joining').length, color: 'text-orange-600 bg-orange-50 border-orange-100' },
-        { id: 'Completed', label: 'Past Activity', count: sessionList.filter(s => s.status === 'Completed').length, color: 'text-slate-600 bg-slate-50 border-slate-200' },
+        { id: 'All',        label: 'ALL ACTIVITIES',        count: sessionList.length },
+        { id: 'InProgress', label: 'PROGRESS ACTIVITY', count: sessionList.filter(s => s.status === 'InProgress' || s.status === 'PROGRESS').length },
+        { id: 'Active',     label: 'CREATED ACTIVITY',   count: sessionList.filter(s => s.status === 'Active' || s.status === 'CREATED').length },
+        { id: 'Joining',    label: 'JOINING',     count: sessionList.filter(s => s.status === 'Joining' || s.status === 'JOINING').length },
+        { id: 'Completed',  label: 'PAST ACTIVITY',   count: sessionList.filter(s => s.status === 'Completed' || s.status === 'COMPLETED' || s.status === 'Inactive').length },
     ];
 
+    const filteredSessions = sessionList.filter(session => {
+        const matchesFilter =
+            filter === 'All' ? true :
+            filter === 'Active' ? (session.status === 'Active' || session.status === 'CREATED') :
+            filter === 'Joining' ? (session.status === 'Joining' || session.status === 'JOINING') :
+            filter === 'InProgress' ? (session.status === 'InProgress' || session.status === 'PROGRESS') :
+            filter === 'Completed' ? (session.status === 'Completed' || session.status === 'COMPLETED' || session.status === 'Inactive') :
+            true;
+
+        const matchesSearch = !searchQuery ||
+            session.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            session.supervisor?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        return matchesFilter && matchesSearch;
+    }).sort((a, b) => {
+        const order: Record<string, number> = { 'InProgress': 0, 'PROGRESS': 0, 'Joining': 1, 'JOINING': 1, 'Active': 2, 'CREATED': 2, 'Completed': 3, 'COMPLETED': 3, 'Inactive': 4 };
+        return (order[a.status] ?? 5) - (order[b.status] ?? 5);
+    });
+
+
+
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {showCreate && (
-                <CreateSessionModal
-                    onClose={() => setShowCreate(false)}
-                    onExecute={handleCreateSession}
-                />
-            )}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-xl font-black text-slate-800 tracking-tight leading-none mb-1">Session Manager</h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Activity Orchestration</p>
+        <div className="space-y-5">
+            <AnimatePresence>
+                {showCreate && (
+                    <CreateSessionModal
+                        onClose={() => setShowCreate(false)}
+                        onExecute={handleCreateSession}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* ── Header ── */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
+                <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-3xl bg-[#E8EFFF] text-[#3B82F6] flex items-center justify-center shadow-sm">
+                        <Zap className="w-6 h-6" fill="currentColor" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold text-slate-800 tracking-tight leading-none mb-1">Session Manager</h1>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-none">Activity Orchestration</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                        <Search className="w-5 h-5" />
+                    <div className="relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="Search sessions..."
+                            className="pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] w-64 transition-all shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]"
+                        />
+                    </div>
+                    <button
+                        onClick={() => fetchSessions(true)}
+                        disabled={refreshing}
+                        className="p-3 rounded-full border border-slate-200 bg-white text-slate-500 hover:text-slate-800 hover:border-slate-300 transition-all shadow-sm"
+                        title="Refresh"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-[#3B82F6]' : ''}`} />
                     </button>
                     <button
                         onClick={() => setShowCreate(true)}
-                        className="px-5 py-2.5 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary/20 transition-all active:scale-95"
+                        className="flex items-center gap-1.5 px-5 py-2.5 bg-[#3B82F6] hover:bg-blue-700 text-white rounded-full font-bold text-[9px] uppercase tracking-widest shadow-lg shadow-blue-500/20 transition-all active:scale-95"
                     >
                         <Plus className="w-4 h-4" />
-                        <span>New Session</span>
+                        New Session
                     </button>
                 </div>
             </div>
 
-            {/* Premium Tab Toggle */}
-            <div className="p-1.5 bg-white/60 border border-slate-100 rounded-2xl overflow-x-auto">
-                <div className="flex gap-1 min-w-max">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setFilter(tab.id)}
-                            className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all duration-300 border ${filter === tab.id
-                                ? `bg-white shadow-md shadow-slate-200/50 ${tab.color.replace('bg-', 'border-').split(' ')[2] || 'border-slate-200'} scale-100`
-                                : 'border-transparent text-slate-400 hover:text-slate-600 hover:bg-slate-50'
-                                }`}
-                        >
-                            <span className={filter === tab.id ? 'text-slate-900' : ''}>{tab.label}</span>
-                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-black ${filter === tab.id ? tab.color : 'bg-slate-100 text-slate-400'
-                                }`}>
-                                {tab.count}
-                            </span>
-                        </button>
-                    ))}
-                </div>
+            {/* ── Tabs ── */}
+            <div className="flex items-center gap-2 p-1.5 bg-white border border-slate-100 rounded-[2rem] shadow-sm overflow-x-auto hide-scrollbar">
+                {tabs.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setFilter(tab.id)}
+                        className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
+                            filter === tab.id
+                                ? 'bg-white text-slate-800 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.1)] ring-1 ring-slate-100'
+                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                        }`}
+                    >
+                        {tab.label}
+                        <span className={`px-2 py-0.5 rounded-md text-[9px] ${
+                            filter === tab.id ? 'bg-[#EEF2FF] text-[#4F46E5]' : 'bg-slate-100 text-slate-400'
+                        }`}>
+                            {tab.count}
+                        </span>
+                    </button>
+                ))}
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
-                {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white/40 rounded-3xl border border-slate-100/50 backdrop-blur-sm">
-                        <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bridging API Surface...</p>
-                    </div>
-                ) : error ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white/40 rounded-3xl border border-red-100 backdrop-blur-sm">
-                        <Zap className="w-8 h-8 text-red-400 mb-4 opacity-50" />
-                        <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-1">API Handshake Failed</p>
-                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{error}</p>
-                    </div>
-                ) : filteredSessions.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-white/40 rounded-3xl border border-dashed border-slate-200 backdrop-blur-sm">
-                        <QrCode className="w-8 h-8 text-slate-200 mb-4" />
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">
-                            No {filter} Sessions<br />
-                            <span className="text-[8px] font-bold mt-1 block">Check other tabs or create a new session</span>
-                        </p>
-                    </div>
-                ) : (
-                    filteredSessions.map((session) => {
-                        const isClickable = true;
-
-                        return (
-                            <div
-                                key={session.id}
-                                onClick={() => {
-                                    if (isClickable) {
-                                        navigate(`/admin/session-detail/${session.id}`, { state: { status: session.status } });
-                                    } else {
-                                        alert(`Cannot access session: Session is ${session.status}`);
-                                    }
-                                }}
-                                className={`glass-card group p-5 rounded-2xl border border-slate-100/50 transition-all bg-white/70 ${isClickable
-                                    ? 'hover:border-primary/20 cursor-pointer'
-                                    : 'opacity-60 cursor-not-allowed'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-5">
-                                    <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/5 transition-colors">
-                                        <QrCode className="w-6 h-6 text-slate-400 group-hover:text-primary transition-colors" />
-                                    </div>
-
-                                    <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        <div>
-                                            <h4 className="font-black text-sm text-slate-800 leading-none mb-1.5">{session.type}</h4>
-                                            <div className="flex items-center gap-1.5 text-[8px] font-black text-primary uppercase tracking-widest">
-                                                <Zap className="w-2.5 h-2.5" />
-                                                {session.level}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col justify-center">
-                                            <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold">
-                                                <Users className="w-3.5 h-3.5" />
-                                                <span>{session.students} Scans</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-col justify-center">
-                                            <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                <span>{session.time} Time</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center justify-end md:pr-4">
-                                            <span className={`px-2.5 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest border ${session.status === 'Joining' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                                                session.status === 'InProgress' ? 'bg-blue-50 text-blue-600 border-blue-100' :
-                                                    session.status === 'Completed' ? 'bg-slate-100 text-slate-600 border-slate-200' :
-                                                        session.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                                            'bg-slate-50 text-slate-400 border-slate-100'
-                                                }`}>
-                                                {session.status}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-1">
-                                        <button className="p-2 hover:bg-slate-50 rounded-lg transition-colors">
-                                            <MoreVertical className="w-4 h-4 text-slate-300" />
-                                        </button>
-                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
-                                    </div>
-                                </div>
+                {/* ── Session List ── */}
+                <div className="py-6 space-y-4">
+                    {loading && sessionList.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-3">
+                            <Loader2 className="w-7 h-7 text-blue-500 animate-spin" />
+                            <p className="text-sm text-slate-500">Loading sessions...</p>
+                        </div>
+                    ) : error ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-3">
+                            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+                                <Zap className="w-5 h-5 text-red-400" />
                             </div>
-                        );
-                    })
-                )}
-            </div>
+                            <div className="text-center">
+                                <p className="text-sm font-semibold text-slate-700">Failed to load sessions</p>
+                                <p className="text-xs text-slate-400 mt-1">{error}</p>
+                            </div>
+                            <button
+                                onClick={() => fetchSessions()}
+                                className="px-4 py-2 bg-slate-900 text-white rounded-lg text-xs font-semibold hover:bg-slate-800 transition-all"
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    ) : filteredSessions.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-3">
+                            <div className="w-12 h-12 rounded-full bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center">
+                                <QrCode className="w-5 h-5 text-slate-300" />
+                            </div>
+                            <div className="text-center">
+                                <p className="text-sm font-semibold text-slate-600">
+                                    {searchQuery ? 'No matching sessions' : `No ${filter === 'All' ? '' : filter + ' '}sessions`}
+                                </p>
+                                <p className="text-xs text-slate-400 mt-1">
+                                    {searchQuery ? 'Try a different search term' : 'Create a session to get started'}
+                                </p>
+                            </div>
+                            {!searchQuery && (
+                                <button
+                                    onClick={() => setShowCreate(true)}
+                                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-all"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    New Session
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        <AnimatePresence mode="popLayout">
+                            {filteredSessions.map((session, index) => {
+                                const sc = getStatusConfig(session.status);
+                                const past = isPastSession(session.status);
+                                return (
+                                    <motion.div
+                                        key={session.id}
+                                        layout
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ delay: index * 0.03 }}
+                                        onClick={() => navigate(`/admin/session-detail/${session.id}`, { state: { status: session.status } })}
+                                        className={`group flex items-center justify-between p-5 rounded-3xl bg-white border border-slate-100 cursor-pointer transition-all hover:border-[#3B82F6]/30 hover:shadow-xl hover:shadow-[#3B82F6]/10 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.05)] ${past ? 'opacity-60 hover:opacity-100 grayscale hover:grayscale-0' : ''}`}
+                                    >
+                                        <div className="flex items-center gap-6 w-full">
+                                            {/* Name / Mode */}
+                                            <div className="flex items-center gap-4 w-[28%] flex-shrink-0">
+                                                <div className="w-12 h-12 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center flex-shrink-0">
+                                                    <QrCode className="w-5 h-5 text-slate-400" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h3 className="text-xs font-bold text-slate-800 truncate mb-1">{session.type}</h3>
+                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                        <span className="flex items-center gap-1 px-1.5 py-0.5 bg-[#EFF6FF] text-[#3B82F6] text-[8px] font-bold uppercase tracking-wider rounded border border-[#DBEAFE]">
+                                                            <Zap className="w-2 h-2" />
+                                                            {session.level}
+                                                        </span>
+                                                        {session.start_mode && (
+                                                            <span className="px-1.5 py-0.5 bg-[#F8FAFC] text-slate-500 border border-slate-200 text-[6.5px] font-bold uppercase tracking-widest rounded">
+                                                                {session.start_mode.replace('_', ' ')}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Scanned */}
+                                            <div className="flex items-center justify-center gap-3 w-[15%]">
+                                                <div className="flex items-center gap-2">
+                                                    <Users className="w-4 h-4 text-slate-300 stroke-[2.5]" />
+                                                    <div>
+                                                        <p className="text-xs font-bold text-slate-800 leading-none mb-1">{session.students}</p>
+                                                        <p className="text-[7px] font-semibold tracking-widest uppercase text-slate-400 leading-none">Scanned</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Schedule */}
+                                            <div className="flex items-center justify-center gap-3 w-[25%] flex-shrink-0">
+                                                <div className="flex items-center gap-2">
+                                                    <Calendar className="w-4 h-4 text-slate-300 stroke-[2.5]" />
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-slate-800 leading-none mb-1">{session.time}</p>
+                                                        <p className="text-[7px] font-semibold tracking-widest uppercase text-slate-400 leading-none">Scheduled</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Supervisor */}
+                                            <div className="w-[18%] flex flex-col justify-center max-w-full">
+                                                <p className="text-[7px] font-semibold tracking-widest uppercase text-slate-400 leading-none mb-1">Supervisor</p>
+                                                <p className="text-[10px] font-bold text-slate-800 truncate block">{session.supervisor}</p>
+                                            </div>
+
+                                            {/* Status Badge */}
+                                            <div className="flex justify-end w-[14%] flex-shrink-0">
+                                                <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-[7.5px] font-bold uppercase tracking-widest ring-1 ring-inset ${sc.badge}`}>
+                                                    {sc.label}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
+                    )}
+                </div>
+
+
         </div>
     );
 };
